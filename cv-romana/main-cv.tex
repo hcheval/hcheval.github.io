@@ -1,0 +1,176 @@
+%%%%%%%%%%%%%%%%% PREAMBLE %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Change the font size of your document - 10pt, 12.1pt, etc.
+\documentclass[letterpaper,11pt,oneside]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{setspace}
+% \usepackage{hyperref}
+
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{xcolor}
+\usepackage[hidelinks]{hyperref}
+% \usepackage{hyperref}
+
+% \newcommand{\todo}[1]{\textcolor{red}{TODO: #1}}
+\newcommand{\todo}[1]{}
+ 
+
+\usepackage{graphicx}
+\graphicspath{ {images/}} %upload your signature to this file
+%Change the margins to fit your CV/resume content
+\usepackage[left=1in, right=1in, bottom=1.25in, top=1.25in]{geometry}
+
+%Skype information - include your Skype name for a link to add you on Skype
+\newcommand*{\Skype}{\href{skype:john.smith?add}{john.smith}} 
+\newcommand{\Absender}[1][\normalsize]{\Skype} 
+
+%Changes the page numbers - {arabic}=arabic numerals, {gobble}=no page numbers, {roman}=Roman numerals
+\pagenumbering{gobble}
+
+%%%%%%%%%%%%%%%%% END OF PREAMBLE %%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\Education}[2]{
+    \Large\textbf{Education} & \textbf{#1} \\
+                             & #2   
+}
+
+\begin{document}
+
+%%%%%%%%%%%%%%%%% NAME OF APPLICANT %%%%%%%%%%%%%%%%%%%
+
+\noindent  \huge{\textbf{Curriculum Vitae \\ Horațiu Cheval}}  \\
+\vspace{-2ex}
+\hrule
+\normalsize
+
+%%%%%%%%%%%%%%%%% CONTACT INFORMATION %%%%%%%%%%%%%%%%%
+% Your email address, website, and Skype name are links to send email, open your website and add you on Skype. 
+
+% \begin{center}
+% \begin{tabular}{l l}
+%  University of Bucharest    \\ \href{mailto:horatiu.cheval@unibuc.ro}{horatiu.cheval@unibuc.ro} \\
+            
+% Phone: +40 728 048 739 \\
+% \end{tabular}
+% \end{center}
+
+\vspace{1em}
+
+%%%%%%%%%%%%%%%%% MAIN BODY %%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The main body is contained in a tabular environment. To move sections onto the next page, simply end the tabular environment and begin a new tabular environment.
+
+
+\noindent
+\Large\textbf{Date personale}
+\normalsize \\[3mm]
+\begin{tabular}{@{} l l l}
+    &Data na\c{s}terii:& 8 februarie, 1998 \\ [2mm]
+    &Na\c{t}ionalitate:& rom\^{a}n\u{a} \\ [2mm]
+    &Email:& {horatiu.cheval@unibuc.ro} \\[2mm]
+    &Afiliere:& Research Center for Logic, Optimization and Security, \\ 
+    && Department of Computer Science, \\ 
+    && Faculty of Mathematics and Computer Science, \\ 
+    && University of Bucharest
+\end{tabular}
+\\[3mm]
+
+\noindent
+\Large{\textbf{Studii}} \\[3mm]
+\normalsize
+\begin{tabular}{@{} l l l}
+    & 2021 - prezent & Studii doctorale \^{i}n matematic\u{a} \\ 
+    &                & Universitatea din Bucure\c{s}ti \\
+    & 2019 - 2021 & Master \^{i}n informatic\u{a} \\  
+    &                & Facultatea de Matematic\u{a} \c{s}i Informatic\u{a}, Universitatea din Bucure\c{s}ti \\
+    & 2016 - 2019    & Licen\c{t}\u{a} \^{i}n informatic\u{a} \\
+    &                & Facultatea de Matematic\u{a} \c{s}i Informatic\u{a}, Universitatea din Bucure\c{s}ti \\
+
+\end{tabular}
+\\[3mm]
+
+\noindent
+\Large\textbf{Employment} \\[3mm]
+\normalsize
+\begin{tabular}{@{} l l l}
+        & 2019 - 2020    & Teaching Computer Science \\
+        &                & School 179 
+\end{tabular}
+\\[3mm]
+
+\noindent
+\Large\textbf{Publica\c{t}ii}
+\normalsize
+\begin{itemize}
+    \item \emph{Quadratic rates of asymptotic regularity for the Tikhonov-Mann iteration} (with Laurențiu Leuștean), arXiv:2107.07176 [math.OC] 2021.
+\end{itemize}
+\mbox{}\\[3mm] 
+
+\noindent
+\Large{\textbf{Prezent\u{a}ri la conferin\c{t}e}} \\[3mm]
+\normalsize
+\begin{itemize}
+    \item \emph{Logic Colloquium 2021}, 
+    Pozna\'n, Poland, July 19-24, 2021 \\ 
+    \url{https://lc2021.pl/}
+    \item \emph{Computability in Europe 2021}, 
+    Ghent, Belgium, July 5-9 2021 \\ 
+    \url{https://www.cie2021.ugent.be/}
+    \item \emph{The 22nd annual Graduate Student Conference in Logic}, 
+    University of Illinois at Urbana-Champaign, `'
+    USA, March 20-21 2021 \\ 
+    \url{https://sites.google.com/view/gsclxxii/}
+\end{itemize}
+\mbox{}\\[3mm]
+
+\noindent
+\Large{\textbf{Prezent\{u}}} \\[3mm]
+\normalsize
+\begin{itemize}
+    \item \emph{LOS Seminar}, Research Center for Logic, Optimization and Security, University of Bucharest,
+    November 23 2021 \\
+    \url{https://los.cs.unibuc.ro/seminar-LOS.html} 
+    \item \emph{Logic Seminar}, Faculty of Mathematics and Computer Science, University of Bucharest,
+    February 18 \& 25 2021 \\ 
+    \url{https://cs.unibuc.ro//~lleustean/Seminar-Logic/seminar-logic.html}
+\end{itemize}
+\mbox{} \\[3mm]
+
+\noindent
+\Large{\textbf{Scholarships and awards}} \\[3mm]
+\normalsize
+\begin{itemize}
+    \item Second prize at the Student Scientific Communications Session of the Faculty of Mathematics and Computer Science, May 18 2021 \\ 
+    \url{https://fmi.unibuc.ro/noutati/sesiunea-de-comunicari-stiintifice-studentesti-premii/}
+    \item Bitdefender research scholarship, March - July 2020 \\
+    \url{https://sla.cs.unibuc.ro/ro/castigatori-burse-si-premii-bitdefender/}
+\end{itemize}
+\mbox{}\\[3mm]
+
+
+
+
+
+
+
+
+% \noindent
+% \Large\textbf{Languages} \\[3mm]
+% \normalsize
+% \begin{tabular}{@{} l l l}
+%     &English (fluent)\\[2mm] 
+%     &Spanish (DELE B2)
+% \end{tabular}
+
+
+% \noindent
+% \Large\textbf{Volunteering} \\[5mm]
+% \normalsize
+% \begin{tabular}{@{} l l l}
+%     &Immaginary Exhibition & \\[2mm]
+%     Sala Radio, Bucharest 2017
+% \end{tabular}
+
+\end{document}
+
