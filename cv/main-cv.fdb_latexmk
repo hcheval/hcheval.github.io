@@ -1,6 +1,6 @@
 # Fdb version 4
-["pdflatex"] 1771275348.7872 "/home/horatiu/Documents/hcheval.github.io/cv/main-cv.tex" "main-cv.pdf" "main-cv" 1771275349.55276 0
-  "/home/horatiu/Documents/hcheval.github.io/cv/main-cv.tex" 1771275348.42757 12359 e809baf01d8a6cbe8cd554997ca9292a ""
+["pdflatex"] 1771756864.08918 "/home/horatiu/Documents/hcheval.github.io/cv/main-cv.tex" "main-cv.pdf" "main-cv" 1771756864.60312 0
+  "/home/horatiu/Documents/hcheval.github.io/cv/main-cv.tex" 1771756690.27667 12359 e809baf01d8a6cbe8cd554997ca9292a ""
   "/usr/share/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc" 1767555874 2900 1537cc8184ad1792082cd229ecc269f4 ""
   "/usr/share/texmf-dist/fonts/map/fontname/texfonts.map" 1767555874 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texmf-dist/fonts/tfm/jknappen/ec/tcrm1095.tfm" 1767555874 1536 02c06700a42be0f5a28664c7273f82e7 ""
@@ -98,9 +98,9 @@
   "/usr/share/texmf-dist/web2c/texmf.cnf" 1767555874 42087 b0f9697c952c8f5a8eede4134282cb0d ""
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1768413887 5311557 9da84c45f5b388655502706482323571 ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1768413842 2008253 6062c2badc3121f8455e782aad1f2c83 ""
-  "main-cv.aux" 1771275349.4709 1318 73e6c948d9f18e148442dfe559a6d6d1 "pdflatex"
-  "main-cv.out" 1771275349.4709 1403 4d8b8730f577fe29ccbed1b3a9ba100b "pdflatex"
-  "main-cv.tex" 1771275348.42757 12359 e809baf01d8a6cbe8cd554997ca9292a ""
+  "main-cv.aux" 1771756864.54983 1318 73e6c948d9f18e148442dfe559a6d6d1 "pdflatex"
+  "main-cv.out" 1771756864.54983 1403 4d8b8730f577fe29ccbed1b3a9ba100b "pdflatex"
+  "main-cv.tex" 1771756690.27667 12359 e809baf01d8a6cbe8cd554997ca9292a ""
   (generated)
   "main-cv.aux"
   "main-cv.log"
