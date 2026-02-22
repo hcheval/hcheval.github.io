@@ -135,9 +135,9 @@ Dacă scriptul rulează fără erori, înseamnă că dependințele sunt corect s
 
 Instalați și configurați [opencode](https://opencode.ai/).
 
-Vom folosi ca exemplu dezvoltarea unei aplicații simple de tip TODO list din linia de comandă.
+Vom folosi ca exemplu dezvoltarea unei aplicații simple de tip 'TODO list' pentru linia de comandă.
 Aplicația va avea un REPL care va suporta comenzi precum crearea unei sarcini, marcarea unei sarcini drept rezolvată,
-ștergerea unei sarcini, listarea tuturor sarcinilor dintr-un interval, etc.
+ștergerea unei sarcini, listarea tuturor sarcinilor dintr-un interval, etc. Sarcinile pot avea titlu, descriere, deadline, interval orar in care sunt programate, etc. 
 
 Scopul este ca aplicația să fie implementată, cu cât mai puțină intervenție din partea voastră, de către agentul AI.
 
