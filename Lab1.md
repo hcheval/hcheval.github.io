@@ -6,7 +6,9 @@
 (Linux, MacOS, sau [Windows Subsystem for Linux](https://learn.microsoft.com/en-us/windows/wsl/install)).
 
 - Majoritatea laboratoarelor vor fi prezentate in python, dar intentia este ca limbajul sa nu fie important. 
-  Daca au sens, puteti rezolva sarcinile si in alte limbaje. 
+  Daca au sens, puteti rezolva sarcinile si in alte limbaje.
+
+- Formați echipele de proiect (2 - 3 studenți) si treceti-le in [tabel](https://docs.google.com/spreadsheets/d/1j7AzNxxasG1oxSRG3-GP70WWYEY997SiZWGQW5fLbPQ/edit?usp=sharing)
 
 ## 1. Controlul versiunilor
 
@@ -64,8 +66,6 @@ git pull
 Înainte de orice sesiune de lucru, un `git pull` este o regulă bună de urmat.
 
 ## 2. Management-ul dependințelor
-
-1. Formați echipele de proiect (2 - 3 studenți). Treceți în [tabel](https://docs.google.com/spreadsheets/d/1j7AzNxxasG1oxSRG3-GP70WWYEY997SiZWGQW5fLbPQ/edit?usp=sharing)
 
 Scopul acestei secțiuni este să puneți un proiect Python pe GitHub astfel încât un coleg să îl poată clona și rula pe mașina sa.
 
