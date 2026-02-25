@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lab 1</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.6.1/github-markdown.min.css" />
+  <style>
+    .markdown-body { box-sizing: border-box; min-width: 200px; max-width: 860px; margin: 40px auto; padding: 0 20px; }
+  </style>
+</head>
+<body>
+<div class="markdown-body">
+<h1 id="sarcini-de-laborator">Sarcini de laborator</h1>
+<p><strong>Observatii</strong>:</p>
+<ul>
+<li><p>Este recomandat sa aveti un sistem de tip Unix pentru rezolvarea
+laboratoarelor (Linux, MacOS, sau <a
+href="https://learn.microsoft.com/en-us/windows/wsl/install">Windows
+Subsystem for Linux</a>).</p></li>
+<li><p>Majoritatea laboratoarelor vor fi prezentate in python, dar
+intentia este ca limbajul sa nu fie important. Daca au sens, puteti
+rezolva sarcinile si in alte limbaje.</p></li>
+</ul>
+<h2 id="controlul-versiunilor">1. Controlul versiunilor</h2>
+<p>Git este un sistem de <strong>versionare a codului sursă</strong>:
+ține evidența tuturor modificărilor din proiect, permite colaborarea în
+echipă și oferă un istoric complet al evoluției acestuia. GitHub si
+Gitlab sunt platforme care găzduiesc repository-uri Git și adaugă
+funcționalități de colaborare: pull requests, code review, issues,
+etc.</p>
+<p>Dacă nu aveți deja un cont GitHub, creați unul pe <a
+href="https://github.com">github.com</a>.</p>
+<p><strong>Autentificare prin SSH</strong></p>
+<p>Cel mai comod mod de a lucra cu GitHub din terminal este prin SSH.
+Generați o pereche de chei:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh-keygen</span> <span class="at">-t</span> ed25519 <span class="at">-C</span> <span class="st">&quot;email@example.com&quot;</span></span></code></pre></div>
+<p>Apăsați Enter pentru locația implicită
+(<code>~/.ssh/id_ed25519</code>). Copiați cheia publică:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> ~/.ssh/id_ed25519.pub</span></code></pre></div>
+<p>Pe GitHub: <strong>Settings → SSH and GPG keys → New SSH
+key</strong>, lipiți cheia și salvați. Verificați că funcționează:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> <span class="at">-T</span> git@github.com</span></code></pre></div>
+<p>Ar trebui să primiți:
+<code>Hi &lt;username&gt;! You've successfully authenticated.</code></p>
+<p><strong>Creați un repository</strong></p>
+<p>Pe GitHub, apăsați <strong>New repository</strong>. Alegeți un nume,
+bifați <strong>Add a README file</strong> și creați repository-ul.
+Clonați-l local:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone git@github.com:<span class="op">&lt;</span>username<span class="op">&gt;</span>/<span class="op">&lt;</span>repo<span class="op">&gt;</span>.git</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> <span class="op">&lt;</span>repo<span class="op">&gt;</span></span></code></pre></div>
+<p><strong>Fluxul de bază</strong></p>
+<p>Modificați fișierul <code>README.md</code>, apoi:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> add README.md       <span class="co"># marcați fișierul pentru următorul commit</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> commit <span class="at">-m</span> <span class="st">&quot;mesaj&quot;</span>  <span class="co"># creați un snapshot local</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> push               <span class="co"># trimiteți pe GitHub</span></span></code></pre></div>
+<p>Pentru a prelua modificările făcute de colegi:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> pull</span></code></pre></div>
+<p>Înainte de orice sesiune de lucru, un <code>git pull</code> este o
+regulă bună de urmat.</p>
+<h2 id="management-ul-dependințelor">2. Management-ul dependințelor</h2>
+<ol type="1">
+<li>Formați echipele de proiect (2 - 3 studenți). Treceți în <a
+href="https://docs.google.com/spreadsheets/d/1j7AzNxxasG1oxSRG3-GP70WWYEY997SiZWGQW5fLbPQ/edit?usp=sharing">tabel</a></li>
+</ol>
+<p>Scopul acestei secțiuni este să puneți un proiect Python pe GitHub
+astfel încât un coleg să îl poată clona și rula pe mașina sa.</p>
+<p><strong>De ce virtual environments?</strong></p>
+<p>Implicit, <code>pip install</code> instalează pachetele global, pe
+toată mașina. Dacă două proiecte au nevoie de versiuni diferite ale
+aceluiași pachet, pot sa apara conflicte. Virtual environments rezolvă
+asta: fiecare proiect are propriul mediu izolat, independent de restul
+sistemului.</p>
+<p><strong>Creați un virtual environment în repository-ul
+vostru:</strong></p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> venv .venv</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> .venv/bin/activate   <span class="co"># Linux/macOS</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="co"># sau</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="ex">.venv\Scripts\activate</span>      <span class="co"># Windows</span></span></code></pre></div>
+<p>Promptul se schimbă în <code>(.venv) $</code>. Orice
+<code>pip install</code> merge acum doar în acest mediu, nu global.</p>
+<p><strong>Instalați un pachet și scrieți un script:</strong></p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install requests</span></code></pre></div>
+<p>Creați un fișier <code>main.py</code> care folosește pachetul
+instalat. Ca punct de plecare, consultați <a
+href="https://requests.readthedocs.io/en/latest/">documentația
+<code>requests</code></a> și <a
+href="https://open-meteo.com/">Open-Meteo</a> — un API public de vreme,
+fără autentificare. Acesta e doar un exemplu, puteti folosi si alte
+biblioteci.</p>
+<p><strong>Salvați dependențele:</strong></p>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> freeze <span class="op">&gt;</span> requirements.txt</span></code></pre></div>
+<p>Deschideți <code>requirements.txt</code> — veți vedea toate pachetele
+instalate, cu versiunile exacte. Acesta este fișierul care permite
+altcuiva să recreeze mediul vostru.</p>
+<p><strong>Excludeți <code>.venv</code> din git:</strong></p>
+<p>Folderul <code>.venv</code> nu se commit-uiește — e mare, e specific
+mașinii voastre și oricum se poate recrea din
+<code>requirements.txt</code>. Adăugați în <code>.gitignore</code>:</p>
+<pre><code>.venv/</code></pre>
+<p><strong>Publicați pe GitHub:</strong></p>
+<div class="sourceCode" id="cb11"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> add main.py requirements.txt .gitignore</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> commit <span class="at">-m</span> <span class="st">&quot;Adaugă script și dependențe&quot;</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> push</span></code></pre></div>
+<p><strong>Verificați că funcționează pentru un coleg:</strong></p>
+<p>Un alt membru al echipei clonează repository-ul (dacă nu l-a clonat
+deja) și rulează:</p>
+<div class="sourceCode" id="cb12"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> pull</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> venv .venv</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> .venv/bin/activate</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">-r</span> requirements.txt</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> main.py</span></code></pre></div>
+<p>Dacă scriptul rulează fără erori, înseamnă că dependințele sunt
+corect specificate.</p>
+<h2 id="coding-agents">3. Coding agents</h2>
+<p>Instalați și configurați <a
+href="https://opencode.ai/">opencode</a>.</p>
+<p>Vom folosi ca exemplu dezvoltarea unei aplicații simple de tip TODO
+list din linia de comandă. Aplicația va avea un REPL care va suporta
+comenzi precum crearea unei sarcini, marcarea unei sarcini drept
+rezolvată, ștergerea unei sarcini, listarea tuturor sarcinilor dintr-un
+interval, etc.</p>
+<p>Scopul este ca aplicația să fie implementată, cu cât mai puțină
+intervenție din partea voastră, de către agentul AI.</p>
+<blockquote>
+<p><strong>Warning!</strong> Agentul poate executa comenzi arbitrare pe
+mașina voastră, acesta fiind, evident, un risc important de securitate.
+Vom vedea în cursuri viitoare moduri robuste de a izola un astfel de
+agent, dar pentru moment, creați un fișier <code>opencode.json</code> în
+rădăcina directorului proiectului, și adăugați următoarele setări:</p>
+</blockquote>
+<div class="sourceCode" id="cb13"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;permission&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;bash&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;*&quot;</span><span class="fu">:</span> <span class="st">&quot;ask&quot;</span><span class="fu">,</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;python *&quot;</span><span class="fu">:</span> <span class="st">&quot;allow&quot;</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;edit&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;*&quot;</span><span class="fu">:</span> <span class="st">&quot;ask&quot;</span> <span class="fu">},</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;webfetch&quot;</span><span class="fu">:</span> <span class="st">&quot;deny&quot;</span><span class="fu">,</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;external_directory&quot;</span><span class="fu">:</span> <span class="st">&quot;deny&quot;</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p>Verificați cu atenție comenzile pentru care agentul va cere voie să
+le execute.</p>
+<p>Creați un fișier <code>SPEC.md</code> în care să specificați cât mai
+riguros aplicația care trebuie implementată (ca punct de plecare, deja
+am dat mai sus o specificație incompletă și mult prea informală). Apoi,
+indicați agentului să planifice și apoi să implementeze aplicația
+descrisă în <code>SPEC.md</code>. Verificați dacă rezultatul corespunde
+specificației din <code>SPEC.md</code>, și dacă corespunde cu ideea pe
+care o aveați în minte la început (cu alte cuvinte, dacă intenția din
+spatele aplicației este corect capturată în <code>SPEC.md</code>)</p>
+<p><strong>Notă</strong>: Va trebui să alegeți un model. Puteți alege
+unul dintre modelele gratuite disponibile în opencode (e.g., la momentul
+scrierii, <code>GLM-5</code>).</p>
+<p><strong>Alternativ</strong>: creați un cont pe <a
+href="https://openrouter.ai/">openrouter</a>, obțineți o cheie API și
+autentificați-vă în opencode cu aceasta,și alegeți în opencode un model
+free de la providerul OpenRouter. Evident, puteți folosi orice alt
+provider dacă se întâmplă să aveți deja o cheie API (atenție la
+costuri)</p>
+</div>
+</body>
+</html>
