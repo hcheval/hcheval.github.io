@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lab 2</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.6.1/github-markdown.min.css" />
+  <style>
+    .markdown-body { box-sizing: border-box; min-width: 200px; max-width: 860px; margin: 40px auto; padding: 0 20px; }
+  </style>
+</head>
+<body>
+<div class="markdown-body">
+<h1 id="lab-2">Lab 2</h1>
+<h2 id="ollama">Ollama</h2>
+<p>Ollama este un serviciu care permite rularea de LLM-uri local. Urmați
+<a href="https://ollama.com/download">instrucțiunile oficiale</a> pentru
+instalare. Pe Linux:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-fsSL</span> https://ollama.com/install.sh <span class="kw">|</span> <span class="fu">sh</span></span></code></pre></div>
+<p>Verificați că funcționează:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">ollama</span> <span class="at">--version</span></span></code></pre></div>
+<h3 id="descărcarea-și-rularea-unui-model">Descărcarea și rularea unui
+model</h3>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">ollama</span> pull tinyllama   <span class="co"># descarcă modelul (~600 MB, o singură dată)</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ex">ollama</span> run tinyllama    <span class="co"># pornește o sesiune interactivă</span></span></code></pre></div>
+<p>Veți vedea un prompt în care puteți scrie orice. Tastați
+<code>/bye</code> pentru a ieși. Vedeti <a
+href="https://huggingface.co/models">https://huggingface.co/models</a>
+pentru mai multe modele (in principiu, modele cu dimensiuni de cativa
+<code>B</code> ar trebui sa functioneze pe majoritatea laptop-urilor).
+Incercati mai multe modele si observati diferentele dintre ele.</p>
+<h3 id="apelarea-din-python">Apelarea din Python</h3>
+<p>Ollama expune un API compatibil cu cel al OpenAI (un standard de
+facto pentru aceste aplicatii). Puteți folosi biblioteca oficială
+<code>openai</code>, schimbând doar URL-ul de bază:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> openai <span class="im">import</span> OpenAI</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>client <span class="op">=</span> OpenAI(</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    base_url<span class="op">=</span><span class="st">&quot;http://localhost:11434/v1&quot;</span>,</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    api_key<span class="op">=</span><span class="st">&quot;ollama&quot;</span>,  <span class="co"># necesar de bibliotecă, dar ignorat de Ollama</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>response <span class="op">=</span> client.chat.completions.create(</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    model<span class="op">=</span><span class="st">&quot;tinyllama&quot;</span>,</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    messages<span class="op">=</span>[</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>        {<span class="st">&quot;role&quot;</span>: <span class="st">&quot;user&quot;</span>, <span class="st">&quot;content&quot;</span>: <span class="st">&quot;What is heavier between a kilogram of lead or a kilogram of feathers?&quot;</span>}</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    ],</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(response.choices[<span class="dv">0</span>].message.content)</span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install openai</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> client.py</span></code></pre></div>
+<p>Ca exercitiu, implementati folosind biblioteca openai, un chat
+similar cu cel din linia de comanda din <code>ollama</code>. Aspectul de
+care trebuie sa tineti cont este memorarea istoricului conversatiei (si
+transmiterea acestuia catre model).</p>
+<hr />
+<h2 id="docker">Docker</h2>
+<p>Docker este un sistem prin care putem crea un mediu izolat si
+replicabil de executie.</p>
+<p>Pentru un scurt exemplu, presupunem ca aplicația noastră are nevoie
+de o bază de date. Putem instala PostgreSQL local, crea un utilizator,
+configura totul, verifica că portul nu e ocupat, asigura că pornește la
+boot… sau:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> run <span class="at">-e</span> POSTGRES_PASSWORD=secret <span class="at">-p</span> 5432:5432 postgres</span></code></pre></div>
+<p>Obtinand un server PostgreSQL izolat, reproductibil. Docker
+împachetează o aplicație împreună cu întregul său mediu de execuție:
+biblioteci de sistem, runtime, dependențe, configurație, într-o imagine.
+O imagine rulează ca un <em>container</em>: un proces izolat care se
+comportă identic pe orice mașină cu Docker instalat.</p>
+<hr />
+<h2 id="notiuni-de-baza">Notiuni de baza</h2>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<tbody>
+<tr>
+<td><strong>Image</strong></td>
+<td>Un snapshot read-only: aplicația + mediul ei.</td>
+</tr>
+<tr>
+<td><strong>Container</strong></td>
+<td>O instanță care rulează a unei imagini.</td>
+</tr>
+<tr>
+<td><strong>Dockerfile</strong></td>
+<td>O rețetă pentru construirea unei imagini.</td>
+</tr>
+<tr>
+<td><strong>Registry</strong></td>
+<td>Un server care stochează imagini. Docker Hub este cel public
+implicit.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="instalare-docker">Instalare Docker</h2>
+<p>Instalați Docker urmând <a
+href="https://docs.docker.com/engine/install/">instrucțiunile
+oficiale</a>. Activati serviciul si verificati ca functioneaza:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> systemctl enable <span class="at">--now</span> docker</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> usermod <span class="at">-aG</span> docker <span class="va">$USER</span>  <span class="co"># ca să nu fie nevoie de sudo la fiecare comandă</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="co"># delogați-vă și relogați-vă pentru ca schimbarea grupului să aibă efect</span></span></code></pre></div>
+<p>Verificați că funcționează:</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> run hello-world</span></code></pre></div>
+<p>Ar trebui să vedeți un mesaj care explică că Docker a descărcat
+imaginea <code>hello-world</code> și l-a rulat.</p>
+<hr />
+<p>Nu trebuie întotdeauna să vă construiți propria imagine. Docker Hub
+are imagini pentru aproape orice infrastructură comună.</p>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Rulați un shell Ubuntu de unică folosință</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> run <span class="at">-it</span> ubuntu bash</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="co"># În interiorul containerului avem un sistem Ubuntu complet, izolat</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> /etc/os-release</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="bu">exit</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Rulați PostgreSQL (un server de baze de date)</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="co"># -d înseamnă &quot;detached&quot; (rulează în fundal)</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a><span class="co"># -p 5432:5432 mapează portul 5432 al mașinii host la portul 5432 al containerului</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a><span class="co"># --name dă un nume containerului</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> run <span class="at">--name</span> mydb <span class="at">-e</span> POSTGRES_PASSWORD=secret <span class="at">-p</span> 5432:5432 <span class="at">-d</span> postgres</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Vedeți containerele care rulează — e acolo, rulând în tăcere</span></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> ps</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Deschideți un shell interactiv în container și conectați-vă la baza de date</span></span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> exec <span class="at">-it</span> mydb psql <span class="at">-U</span> postgres</span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a><span class="co"># Acum sunteți în interiorul bazei de date. Încercați:</span></span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a><span class="co">#   CREATE TABLE test (id int, name text);</span></span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a><span class="co">#   INSERT INTO test VALUES (1, &#39;hello&#39;);</span></span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a><span class="co">#   SELECT * FROM test;</span></span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a><span class="co">#   \q    (pentru a ieși)</span></span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a><span class="co"># Opriți-l</span></span>
+<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> stop mydb</span>
+<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a><span class="co"># Ștergeți-l (containerele nu se șterg singure)</span></span>
+<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> rm mydb</span></code></pre></div>
+<p><strong>Idee cheie:</strong> flag-ul <code>-p host:container</code>
+este modul în care expuneți porturile containerului. Fără el, serviciul
+rulează dar este complet inaccesibil din afara containerului. Flag-ul
+<code>-d</code> rulează containerul în fundal: <code>docker ps</code> și
+<code>docker logs mydb</code> sunt modul în care îl monitorizați.</p>
+<h3 id="comenzi-utile">Comenzi utile</h3>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> ps              <span class="co"># containere care rulează</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> ps <span class="at">-a</span>           <span class="co"># toate containerele (inclusiv cele oprite)</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> images          <span class="co"># imaginile de pe mașina voastră</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> rm <span class="op">&lt;</span>name<span class="op">&gt;</span>       <span class="co"># șterge un container</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> rmi <span class="op">&lt;</span>image<span class="op">&gt;</span>     <span class="co"># șterge o imagine</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> logs <span class="op">&lt;</span>name<span class="op">&gt;</span>     <span class="co"># stdout-ul unui container</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> exec <span class="at">-it</span> <span class="op">&lt;</span>name<span class="op">&gt;</span> bash   <span class="co"># deschide un shell în interiorul unui container care rulează</span></span></code></pre></div>
+<hr />
+<h2 id="configurarea-unei-imagini">Configurarea unei imagini</h2>
+<p>Crearea unei imagini se realizeaza prin specificarea unui fisier
+<code>Dockerfile</code>. Luați scriptul <code>main.py</code> din Lab 1,
+scriptul vostru meteo care folosește <code>requests</code>. Să îl
+containerizăm. Mergeți în proiectul din Lab 1 (sau creati unul nou).</p>
+<div class="sourceCode" id="cb11"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> path/to/repo-lab1</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ls</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="co"># ar trebui să vedeți main.py și requirements.txt</span></span></code></pre></div>
+<p>Creați un fișier numit <code>Dockerfile</code> în același director,
+lângă <code>main.py</code>:</p>
+<pre><code>repo-lab1/
+├── main.py
+├── requirements.txt
+└── Dockerfile        </code></pre>
+<p>Conținutul <code>Dockerfile</code>-ului:</p>
+<div class="sourceCode" id="cb13"><pre
+class="sourceCode dockerfile"><code class="sourceCode dockerfile"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Pornim de la o imagine oficiala Python</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="kw">FROM</span> python:3.12-slim</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Setăm un director de lucru în interiorul containerului</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="kw">WORKDIR</span> /app</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Copiem mai întâi specificația dependențelor (pentru layer caching — explicat mai jos)</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="kw">COPY</span> requirements.txt .</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Instalăm dependențele</span></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a><span class="kw">RUN</span> <span class="ex">pip</span> install <span class="at">-r</span> requirements.txt</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Copiem restul codului sursă</span></span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a><span class="kw">COPY</span> . .</span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Comanda implicită când containerul pornește</span></span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a><span class="kw">CMD</span> [<span class="st">&quot;python&quot;</span>, <span class="st">&quot;main.py&quot;</span>]</span></code></pre></div>
+<p>Build și rulare (<code>.</code> de la final înseamnă „folosește
+directorul curent ca context”):</p>
+<div class="sourceCode" id="cb14"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> build <span class="at">-t</span> weather .</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> run weather</span></code></pre></div>
+<p>Ar trebui să vedeți același output ca la <code>python main.py</code>
+direct, dar acum va produce același output pe orice mașină cu Docker,
+indiferent ce versiune de Python este instalată local.</p>
+<h3 id="layer-caching">Layer caching</h3>
+<p>Docker construiește imaginile în straturi (<em>layers</em>), câte
+unul per instrucțiune. Dacă un layer nu s-a schimbat față de ultimul
+build, Docker îl reutilizează din cache. De aceea
+<code>COPY requirements.txt</code> vine <em>înaintea</em> lui
+<code>COPY . .</code>:</p>
+<ul>
+<li>Dacă modificați doar <code>main.py</code>, Docker reutilizează
+layer-ul de pip install din cache.</li>
+<li>Dacă modificați <code>requirements.txt</code>, Docker rulează din
+nou pip install.</li>
+</ul>
+<p>Inversarea ordinii ar cauza rularea pip install la fiecare modificare
+de cod.</p>
+<hr />
+<h3 id="sandboxing-pentru-un-coding-agent">Sandboxing pentru un coding
+agent</h3>
+<p>Pe langa utilizarile care tin de infrastructura aplicatiei, pentru
+laborator ne intereseaza si izolarea agentilor AI pentru a mitiga
+riscurile de securitate care vin odata cu acestia.</p>
+<p>În Laboratorul 1 am introdus opencode, si l-ați rulat direct pe
+mașina voastră. Laboratorul includea acest avertisment:</p>
+<blockquote>
+<p><em>Agentul poate executa comenzi arbitrare pe mașina voastră, acesta
+este un risc important de securitate.</em></p>
+</blockquote>
+<p>Un container oferă o barieră mai dură: agentul rulează în interiorul
+unui container si poate vedea doar fișierele pe care le montați explicit
+în el. Dacă rulează <code>rm -rf /</code>, distruge filesystem-ul
+containerului, nu pe cel local.</p>
+<h3 id="setup">Setup</h3>
+<p>Creați un <code>Dockerfile</code> pentru opencode:</p>
+<div class="sourceCode" id="cb15"><pre
+class="sourceCode dockerfile"><code class="sourceCode dockerfile"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="kw">FROM</span> node:22-slim</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="kw">RUN</span> <span class="ex">npm</span> install <span class="at">-g</span> opencode-ai@latest</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="kw">WORKDIR</span> /workspace</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="kw">ENTRYPOINT</span> [<span class="st">&quot;opencode&quot;</span>]</span></code></pre></div>
+<p>Build:</p>
+<div class="sourceCode" id="cb16"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> build <span class="at">-t</span> opencode-sandbox .</span></code></pre></div>
+<h3 id="rularea-agentului-pe-un-proiect">Rularea agentului pe un
+proiect</h3>
+<p>Montați directorul proiectului în container și transmiteți cheia
+voastră de API (sau ignorati daca folositi doar modelele free din
+opencode):</p>
+<div class="sourceCode" id="cb17"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> run <span class="at">-it</span> <span class="at">--rm</span> <span class="dt">\</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-v</span> <span class="va">$(</span><span class="bu">pwd</span><span class="va">)</span>:/workspace <span class="dt">\</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-e</span> OPENROUTER_API_KEY=cheia_voastra_aici <span class="dt">\</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  opencode-sandbox</span></code></pre></div>
+<ul>
+<li><code>-v $(pwd):/workspace</code>: containerul vede directorul
+vostru curent la <code>/workspace</code>. Agentul poate citi și scrie
+fișiere acolo, dar nicăieri altundeva pe mașina voastră.</li>
+<li><code>-e OPENROUTER_API_KEY=...</code>: agentul are nevoie de acces
+la rețea pentru a apela API-ul LLM; asta e în regulă. Ce nu poate face
+este să acceseze <code>~/.ssh</code>, <code>~/.aws</code> sau orice altă
+cale de pe host pe care nu ați montat-o.</li>
+<li><code>--rm</code>: șterge containerul automat când ieșiți, fără
+nicio curățare manuală.</li>
+</ul>
+<p>Daca aveti curaj si incredere ca totul a fost configurat bine, puteti
+cere agentului de coding sa stearga intregul fisier home, desi sunt
+sanse sa refuze cererea. (dar recomandarea ar fi sa incercati asta pe o
+masina virtuala prima data, nu suntem responsabili pentru pierderea
+fisierelor).</p>
+</div>
+</body>
+</html>
