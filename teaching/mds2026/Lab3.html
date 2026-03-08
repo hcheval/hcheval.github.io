@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lab 3</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.6.1/github-markdown.min.css" />
+  <style>
+    .markdown-body { box-sizing: border-box; min-width: 200px; max-width: 860px; margin: 40px auto; padding: 0 20px; }
+  </style>
+</head>
+<body>
+<div class="markdown-body">
+<h1 id="lab-3---mvc">Lab 3 - MVC</h1>
+<h2 id="what-is-mvc">What is MVC?</h2>
+<p>MVC (Model-View-Controller) is an architectural pattern that splits
+an application into three components:</p>
+<ul>
+<li><strong>Model</strong> - the data and business logic. Defines the
+database schema.</li>
+<li><strong>View</strong> - the presentation layer. Renders data as HTML
+(or JSON, etc.).</li>
+<li><strong>Controller</strong> - receives user requests, queries the
+model, picks which view to display.</li>
+</ul>
+<p>Without this separation, you end up with SQL queries mixed into HTML,
+business logic scattered across templates, and code nobody wants to
+touch. MVC forces a structure where each part does one thing.</p>
+<p>Many MVC frameworks exist across languages and ecosystems (Spring for
+Java, Rails for Ruby, ASP.NET for C#, etc.). For this lab we’ll use
+Django, a Python framework.</p>
+<p>Django uses a variant called <strong>MTV</strong>
+(Model-Template-View) with the same structure but different names. The
+terminology is confusing: what MVC calls “Controller”, Django calls
+“View”; what MVC calls “View”, Django calls “Template”.</p>
+<table>
+<thead>
+<tr>
+<th>MVC</th>
+<th>Django</th>
+<th>File</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Model</td>
+<td>Model</td>
+<td><code>models.py</code></td>
+</tr>
+<tr>
+<td>Controller</td>
+<td>View</td>
+<td><code>views.py</code></td>
+</tr>
+<tr>
+<td>View</td>
+<td>Template</td>
+<td><code>templates/*.html</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="setup">Setup</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> venv .venv</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> .venv/bin/activate</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install django</span></code></pre></div>
+<h2 id="creating-the-project">Creating the project</h2>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">django-admin</span> startproject catalog .</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> manage.py startapp courses</span></code></pre></div>
+<p>This creates two directories: - <code>catalog/</code> holds the
+project configuration (<code>settings.py</code>, <code>urls.py</code>).
+No business logic goes here. - <code>courses/</code> is the actual
+application: models, views, templates.</p>
+<p>A Django project can contain multiple apps
+(e.g. <code>courses</code>, <code>students</code>,
+<code>reviews</code>).</p>
+<p>Register the app in <code>catalog/settings.py</code>:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>INSTALLED_APPS <span class="op">=</span> [</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    ...</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">&#39;courses&#39;</span>,</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>]</span></code></pre></div>
+<h2 id="model">1. Model</h2>
+<p><code>courses/models.py</code> defines the data structure. Each class
+that inherits from <code>models.Model</code> becomes a database table,
+and each attribute becomes a column. You don’t write SQL; Django handles
+that.</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> django.db <span class="im">import</span> models</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Category(models.Model):</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    name <span class="op">=</span> models.CharField(max_length<span class="op">=</span><span class="dv">100</span>)</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">class</span> Meta:</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>        verbose_name_plural <span class="op">=</span> <span class="st">&#39;categories&#39;</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__str__</span>(<span class="va">self</span>):</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>.name</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Course(models.Model):</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>    title <span class="op">=</span> models.CharField(max_length<span class="op">=</span><span class="dv">200</span>)</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>    instructor <span class="op">=</span> models.CharField(max_length<span class="op">=</span><span class="dv">100</span>)</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>    description <span class="op">=</span> models.TextField(blank<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>    year <span class="op">=</span> models.IntegerField()</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>    semester <span class="op">=</span> models.CharField(</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>        max_length<span class="op">=</span><span class="dv">10</span>,</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>        choices<span class="op">=</span>[(<span class="st">&#39;fall&#39;</span>, <span class="st">&#39;Fall&#39;</span>), (<span class="st">&#39;spring&#39;</span>, <span class="st">&#39;Spring&#39;</span>)],</span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>        default<span class="op">=</span><span class="st">&#39;fall&#39;</span>,</span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>    category <span class="op">=</span> models.ForeignKey(</span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>        Category, on_delete<span class="op">=</span>models.CASCADE, related_name<span class="op">=</span><span class="st">&#39;courses&#39;</span>,</span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__str__</span>(<span class="va">self</span>):</span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="ss">f&quot;</span><span class="sc">{</span><span class="va">self</span><span class="sc">.</span>title<span class="sc">}</span><span class="ss"> (</span><span class="sc">{</span><span class="va">self</span><span class="sc">.</span>year<span class="sc">}</span><span class="ss">)&quot;</span></span></code></pre></div>
+<p><code>ForeignKey</code> creates a relationship between
+<code>Course</code> and <code>Category</code> (each course belongs to
+one category). Django uses SQLite by default (the
+<code>db.sqlite3</code> file appears in your project directory). Run the
+commands below to generate the SQL tables from the Python models:
+<code>makemigrations</code> generates a script describing the changes,
+and <code>migrate</code> executes it against the database.</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> manage.py makemigrations</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> manage.py migrate</span></code></pre></div>
+<p>Start the server with <code>python manage.py runserver</code> and go
+to <code>http://127.0.0.1:8000/</code>. There are no views or templates
+yet, so you’ll see the default Django page.</p>
+<h2 id="views-controller">2. Views (Controller)</h2>
+<p><code>courses/views.py</code> is where you write the functions that
+handle HTTP requests and return responses. Each view receives a
+<code>request</code> object (containing the HTTP method, URL parameters,
+form data, etc.) and must return a <code>response</code> (usually HTML
+rendered from a template).</p>
+<p>The typical pattern is: pull data from the model, pass it to a
+template, return the resulting HTML.</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> django.shortcuts <span class="im">import</span> render, get_object_or_404, redirect</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> django.contrib.auth.decorators <span class="im">import</span> login_required</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> django.db.models <span class="im">import</span> Q</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> .models <span class="im">import</span> Course, Category</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> .forms <span class="im">import</span> CourseForm</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> course_list(request):</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    courses <span class="op">=</span> Course.objects.<span class="bu">all</span>().order_by(<span class="st">&#39;-year&#39;</span>, <span class="st">&#39;title&#39;</span>)</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    categories <span class="op">=</span> Category.objects.<span class="bu">all</span>().order_by(<span class="st">&#39;name&#39;</span>)</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>    category_id <span class="op">=</span> request.GET.get(<span class="st">&#39;category&#39;</span>)</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> category_id:</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>        courses <span class="op">=</span> courses.<span class="bu">filter</span>(category_id<span class="op">=</span>category_id)</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>    query <span class="op">=</span> request.GET.get(<span class="st">&#39;q&#39;</span>, <span class="st">&#39;&#39;</span>)</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> query:</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>        courses <span class="op">=</span> courses.<span class="bu">filter</span>(</span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>            Q(title__icontains<span class="op">=</span>query) <span class="op">|</span> Q(instructor__icontains<span class="op">=</span>query)</span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> render(request, <span class="st">&#39;courses/course_list.html&#39;</span>, {</span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>        <span class="st">&#39;courses&#39;</span>: courses,</span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>        <span class="st">&#39;categories&#39;</span>: categories,</span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>        <span class="st">&#39;query&#39;</span>: query,</span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> course_detail(request, pk):</span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a>    course <span class="op">=</span> get_object_or_404(Course, pk<span class="op">=</span>pk)</span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> render(request, <span class="st">&#39;courses/course_detail.html&#39;</span>, {<span class="st">&#39;course&#39;</span>: course})</span>
+<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a><span class="at">@login_required</span></span>
+<span id="cb6-35"><a href="#cb6-35" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> course_create(request):</span>
+<span id="cb6-36"><a href="#cb6-36" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> request.method <span class="op">==</span> <span class="st">&#39;POST&#39;</span>:</span>
+<span id="cb6-37"><a href="#cb6-37" aria-hidden="true" tabindex="-1"></a>        form <span class="op">=</span> CourseForm(request.POST)</span>
+<span id="cb6-38"><a href="#cb6-38" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> form.is_valid():</span>
+<span id="cb6-39"><a href="#cb6-39" aria-hidden="true" tabindex="-1"></a>            course <span class="op">=</span> form.save()</span>
+<span id="cb6-40"><a href="#cb6-40" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> redirect(<span class="st">&#39;course_detail&#39;</span>, pk<span class="op">=</span>course.pk)</span>
+<span id="cb6-41"><a href="#cb6-41" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb6-42"><a href="#cb6-42" aria-hidden="true" tabindex="-1"></a>        form <span class="op">=</span> CourseForm()</span>
+<span id="cb6-43"><a href="#cb6-43" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> render(request, <span class="st">&#39;courses/course_form.html&#39;</span>, {<span class="st">&#39;form&#39;</span>: form, <span class="st">&#39;action&#39;</span>: <span class="st">&#39;Add&#39;</span>})</span></code></pre></div>
+<p>A few things to notice:</p>
+<ul>
+<li><code>get_object_or_404</code> looks up an object in the database
+and automatically returns an HTTP 404 if it doesn’t exist. You could do
+<code>try/except Course.DoesNotExist</code> manually, but this is
+shorter and more idiomatic in Django.</li>
+<li><code>@login_required</code> is a decorator that checks if the user
+is authenticated. If not, it redirects to the login page.</li>
+<li><code>request.GET</code> is a dictionary of URL parameters. When a
+user visits <code>/?q=algebra</code>, <code>request.GET.get('q')</code>
+returns <code>'algebra'</code>.</li>
+<li><code>Q(title__icontains=query)</code> does a case-insensitive
+search. <code>Q</code> lets you combine multiple conditions with
+<code>|</code> (OR) or <code>&amp;</code> (AND).</li>
+</ul>
+<p><strong>Exercise:</strong> The code above only covers
+<code>course_list</code>, <code>course_detail</code>, and
+<code>course_create</code>. Write the <code>course_edit</code> and
+<code>course_delete</code> views yourself. <code>course_edit</code> is
+very similar to <code>course_create</code> (it also uses
+<code>CourseForm</code>), but it receives a <code>pk</code> argument and
+passes an existing <code>instance</code> to the form.
+<code>course_delete</code> should handle GET (show a confirmation page)
+and POST (actually delete the course and redirect to the list).</p>
+<h2 id="forms">3. Forms</h2>
+<p>Django can auto-generate forms from models. In
+<code>courses/forms.py</code>:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> django <span class="im">import</span> forms</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> .models <span class="im">import</span> Course</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> CourseForm(forms.ModelForm):</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">class</span> Meta:</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>        model <span class="op">=</span> Course</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>        fields <span class="op">=</span> [<span class="st">&#39;title&#39;</span>, <span class="st">&#39;instructor&#39;</span>, <span class="st">&#39;description&#39;</span>, <span class="st">&#39;year&#39;</span>, <span class="st">&#39;semester&#39;</span>, <span class="st">&#39;category&#39;</span>]</span></code></pre></div>
+<p><code>ModelForm</code> looks at the <code>Course</code> model, takes
+the specified fields, and generates the corresponding HTML form fields
+(text input for <code>CharField</code>, dropdown for
+<code>ForeignKey</code>, etc.). Validation comes for free: if someone
+submits a form with the year left blank, Django returns an error
+automatically.</p>
+<h2 id="urls">4. URLs</h2>
+<p>Routes map URLs to view functions. When a user visits
+<code>http://127.0.0.1:8000/new/</code>, Django scans the route list for
+a matching pattern (<code>new/</code>) and calls the associated function
+(<code>views.course_create</code>).</p>
+<p>In <code>courses/urls.py</code>:</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> django.urls <span class="im">import</span> path</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> . <span class="im">import</span> views</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>urlpatterns <span class="op">=</span> [</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    path(<span class="st">&#39;&#39;</span>, views.course_list, name<span class="op">=</span><span class="st">&#39;course_list&#39;</span>),</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    path(<span class="st">&#39;new/&#39;</span>, views.course_create, name<span class="op">=</span><span class="st">&#39;course_create&#39;</span>),</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    path(<span class="st">&#39;&lt;int:pk&gt;/&#39;</span>, views.course_detail, name<span class="op">=</span><span class="st">&#39;course_detail&#39;</span>),</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    path(<span class="st">&#39;&lt;int:pk&gt;/edit/&#39;</span>, views.course_edit, name<span class="op">=</span><span class="st">&#39;course_edit&#39;</span>),</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    path(<span class="st">&#39;&lt;int:pk&gt;/delete/&#39;</span>, views.course_delete, name<span class="op">=</span><span class="st">&#39;course_delete&#39;</span>),</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>]</span></code></pre></div>
+<p><code>&lt;int:pk&gt;</code> is a dynamic segment:
+<code>path('&lt;int:pk&gt;/', views.course_detail)</code> matches
+<code>/1/</code>, <code>/2/</code>, <code>/57/</code>, etc., and passes
+the value as the <code>pk</code> argument to
+<code>course_detail</code>.</p>
+<p>In <code>catalog/urls.py</code>, include the app routes (along with
+admin and auth routes):</p>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> django.contrib <span class="im">import</span> admin</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> django.urls <span class="im">import</span> path, include</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>urlpatterns <span class="op">=</span> [</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    path(<span class="st">&#39;admin/&#39;</span>, admin.site.urls),</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    path(<span class="st">&#39;accounts/&#39;</span>, include(<span class="st">&#39;django.contrib.auth.urls&#39;</span>)),</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    path(<span class="st">&#39;&#39;</span>, include(<span class="st">&#39;courses.urls&#39;</span>)),</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>]</span></code></pre></div>
+<h2 id="templates-view">5. Templates (View)</h2>
+<p>Templates are HTML files with special Django syntax:
+<code>{{ variable }}</code> to display values and <code>{% tag %}</code>
+for logic (conditionals, loops, inheritance). Django has an inheritance
+system: you define a base template with the common layout (nav, CSS),
+and specific templates extend it and fill in the blocks.</p>
+<p>First, create the template directory. Django expects a specific
+nested structure:</p>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> courses/templates/courses</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> courses/templates/registration</span></code></pre></div>
+<p><code>courses/templates/courses/base.html</code> holds the common
+layout:</p>
+<div class="sourceCode" id="cb11"><pre
+class="sourceCode html"><code class="sourceCode html"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="dt">&lt;!DOCTYPE</span> html<span class="dt">&gt;</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="dt">&lt;</span><span class="kw">html</span><span class="dt">&gt;</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="dt">&lt;</span><span class="kw">head</span><span class="dt">&gt;</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&lt;</span><span class="kw">title</span><span class="dt">&gt;</span>{% block title %}Course Catalog{% endblock %}<span class="dt">&lt;/</span><span class="kw">title</span><span class="dt">&gt;</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="dt">&lt;/</span><span class="kw">head</span><span class="dt">&gt;</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="dt">&lt;</span><span class="kw">body</span><span class="dt">&gt;</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&lt;</span><span class="kw">nav</span><span class="dt">&gt;</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&lt;</span><span class="kw">a</span><span class="ot"> href</span><span class="op">=</span><span class="st">&quot;{% url &#39;course_list&#39; %}&quot;</span><span class="dt">&gt;</span>All Courses<span class="dt">&lt;/</span><span class="kw">a</span><span class="dt">&gt;</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>        {% if user.is_authenticated %}</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&lt;</span><span class="kw">a</span><span class="ot"> href</span><span class="op">=</span><span class="st">&quot;{% url &#39;course_create&#39; %}&quot;</span><span class="dt">&gt;</span>Add Course<span class="dt">&lt;/</span><span class="kw">a</span><span class="dt">&gt;</span></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>        {% endif %}</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&lt;/</span><span class="kw">nav</span><span class="dt">&gt;</span></span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>    {% block content %}{% endblock %}</span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a><span class="dt">&lt;/</span><span class="kw">body</span><span class="dt">&gt;</span></span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a><span class="dt">&lt;/</span><span class="kw">html</span><span class="dt">&gt;</span></span></code></pre></div>
+<p><code>courses/templates/courses/course_list.html</code> displays the
+course list with filtering:</p>
+<div class="sourceCode" id="cb12"><pre
+class="sourceCode html"><code class="sourceCode html"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>{% extends &quot;courses/base.html&quot; %}</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>{% block content %}</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="dt">&lt;</span><span class="kw">h1</span><span class="dt">&gt;</span>Course Catalog<span class="dt">&lt;/</span><span class="kw">h1</span><span class="dt">&gt;</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="dt">&lt;</span><span class="kw">form</span><span class="ot"> method</span><span class="op">=</span><span class="st">&quot;get&quot;</span><span class="dt">&gt;</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&lt;</span><span class="kw">input</span><span class="ot"> type</span><span class="op">=</span><span class="st">&quot;text&quot;</span><span class="ot"> name</span><span class="op">=</span><span class="st">&quot;q&quot;</span><span class="ot"> placeholder</span><span class="op">=</span><span class="st">&quot;Search...&quot;</span><span class="ot"> value</span><span class="op">=</span><span class="st">&quot;{{ query }}&quot;</span><span class="dt">&gt;</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&lt;</span><span class="kw">select</span><span class="ot"> name</span><span class="op">=</span><span class="st">&quot;category&quot;</span><span class="dt">&gt;</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&lt;</span><span class="kw">option</span><span class="ot"> value</span><span class="op">=</span><span class="st">&quot;&quot;</span><span class="dt">&gt;</span>All categories<span class="dt">&lt;/</span><span class="kw">option</span><span class="dt">&gt;</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>        {% for cat in categories %}</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&lt;</span><span class="kw">option</span><span class="ot"> value</span><span class="op">=</span><span class="st">&quot;{{ cat.pk }}&quot;</span><span class="dt">&gt;</span>{{ cat.name }}<span class="dt">&lt;/</span><span class="kw">option</span><span class="dt">&gt;</span></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>        {% endfor %}</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&lt;/</span><span class="kw">select</span><span class="dt">&gt;</span></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&lt;</span><span class="kw">button</span><span class="ot"> type</span><span class="op">=</span><span class="st">&quot;submit&quot;</span><span class="dt">&gt;</span>Filter<span class="dt">&lt;/</span><span class="kw">button</span><span class="dt">&gt;</span></span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a><span class="dt">&lt;/</span><span class="kw">form</span><span class="dt">&gt;</span></span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>{% for course in courses %}</span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a><span class="dt">&lt;</span><span class="kw">div</span><span class="dt">&gt;</span></span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&lt;</span><span class="kw">a</span><span class="ot"> href</span><span class="op">=</span><span class="st">&quot;{% url &#39;course_detail&#39; course.pk %}&quot;</span><span class="dt">&gt;</span>{{ course.title }}<span class="dt">&lt;/</span><span class="kw">a</span><span class="dt">&gt;</span></span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&lt;</span><span class="kw">div</span><span class="dt">&gt;</span>{{ course.instructor }} | {{ course.category.name }}<span class="dt">&lt;/</span><span class="kw">div</span><span class="dt">&gt;</span></span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a><span class="dt">&lt;/</span><span class="kw">div</span><span class="dt">&gt;</span></span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>{% empty %}</span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a><span class="dt">&lt;</span><span class="kw">p</span><span class="dt">&gt;</span>No courses found.<span class="dt">&lt;/</span><span class="kw">p</span><span class="dt">&gt;</span></span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>{% endfor %}</span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>{% endblock %}</span></code></pre></div>
+<p>Notice <code>{% url 'course_detail' course.pk %}</code>: instead of
+hardcoding the URL <code>/3/</code>, you use the route name defined in
+<code>urls.py</code>. If you later change the URL structure, the
+templates don’t need to be updated.</p>
+<p><strong>Exercise:</strong> Write the remaining templates yourself: -
+<code>course_detail.html</code>: show all fields of a single course
+(title, instructor, description, year, semester, category). Add links to
+edit and delete (visible only if the user is authenticated). -
+<code>course_form.html</code>: a form for creating/editing a course. Use
+<code>{{ form.as_p }}</code> to render the form fields and don’t forget
+<code>{% csrf_token %}</code> inside the <code>&lt;form&gt;</code> tag.
+- <code>course_confirm_delete.html</code>: a confirmation page (“Are you
+sure you want to delete X?”) with a POST form to confirm. -
+<code>registration/login.html</code>: a login page. Same idea as the
+form template: <code>{{ form.as_p }}</code> with a submit button.</p>
+<p>All of these should
+<code>{% extends "courses/base.html" %}</code>.</p>
+<p>Restart the server and verify that the list page loads, you can click
+into a course detail, and the create form works (you’ll need to log in
+first).</p>
+<h2 id="admin">6. Admin</h2>
+<p>So far the only way to add courses to the database is through the
+form. Django ships with a built-in admin interface that lets you manage
+data directly, without writing additional views or templates. You just
+need to register your models in <code>courses/admin.py</code>:</p>
+<div class="sourceCode" id="cb13"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> django.contrib <span class="im">import</span> admin</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> .models <span class="im">import</span> Category, Course</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>admin.site.register(Category)</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>admin.site.register(Course)</span></code></pre></div>
+<p>Create a superuser and go to
+<code>http://127.0.0.1:8000/admin/</code>:</p>
+<div class="sourceCode" id="cb14"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> manage.py createsuperuser</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> manage.py runserver</span></code></pre></div>
+<p>From the admin panel you can add, edit, and delete categories and
+courses without any extra code.</p>
+<h2 id="rest-api">7. REST API</h2>
+<p>So far all views return HTML. But the same model can also be exposed
+as JSON, for clients that aren’t browsers (other apps, scripts, separate
+frontends). This is a key point of MVC separation: the model stays the
+same, only the representation changes.</p>
+<p>In <code>views.py</code>:</p>
+<div class="sourceCode" id="cb15"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> django.http <span class="im">import</span> JsonResponse</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> api_courses(request):</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>    courses <span class="op">=</span> Course.objects.<span class="bu">all</span>().order_by(<span class="st">&#39;-year&#39;</span>, <span class="st">&#39;title&#39;</span>)</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>    data <span class="op">=</span> [</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>        {</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>            <span class="st">&#39;id&#39;</span>: c.pk,</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>            <span class="st">&#39;title&#39;</span>: c.title,</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>            <span class="st">&#39;instructor&#39;</span>: c.instructor,</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>            <span class="st">&#39;year&#39;</span>: c.year,</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>            <span class="st">&#39;category&#39;</span>: c.category.name,</span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> c <span class="kw">in</span> courses</span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>    ]</span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> JsonResponse(data, safe<span class="op">=</span><span class="va">False</span>)</span></code></pre></div>
+<p>Don’t forget to add the API routes in
+<code>courses/urls.py</code>:</p>
+<div class="sourceCode" id="cb16"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>    path(<span class="st">&#39;api/courses/&#39;</span>, views.api_courses, name<span class="op">=</span><span class="st">&#39;api_courses&#39;</span>),</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>    path(<span class="st">&#39;api/courses/&lt;int:pk&gt;/&#39;</span>, views.api_course_detail, name<span class="op">=</span><span class="st">&#39;api_course_detail&#39;</span>),</span></code></pre></div>
+<p><strong>Exercise:</strong> Write the <code>api_course_detail</code>
+view. It should return JSON for a single course (look up by
+<code>pk</code>, return 404 if not found).</p>
+<p>Test with <code>curl</code>:</p>
+<div class="sourceCode" id="cb17"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> http://127.0.0.1:8000/api/courses/ <span class="kw">|</span> <span class="ex">python</span> <span class="at">-m</span> json.tool</span></code></pre></div>
+<h2 id="authentication">8. Authentication</h2>
+<p>Django has built-in authentication:</p>
+<ul>
+<li><code>@login_required</code> goes on the create/edit/delete views.
+If the user isn’t authenticated, they get redirected to the login
+page.</li>
+<li><code>path('accounts/', include('django.contrib.auth.urls'))</code>
+automatically adds routes for <code>/accounts/login/</code>,
+<code>/accounts/logout/</code>, etc.</li>
+<li>In templates, <code>{% if user.is_authenticated %}</code> controls
+which buttons are shown.</li>
+</ul>
+<p>In <code>catalog/settings.py</code>:</p>
+<div class="sourceCode" id="cb18"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>LOGIN_REDIRECT_URL <span class="op">=</span> <span class="st">&#39;/&#39;</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>LOGOUT_REDIRECT_URL <span class="op">=</span> <span class="st">&#39;/&#39;</span></span></code></pre></div>
+<h2 id="tests">9. Tests</h2>
+<p>Django comes with a test client that simulates HTTP requests without
+starting the server. Each test runs on a temporary database that gets
+created and destroyed automatically, so there’s no risk of corrupting
+real data.</p>
+<p>In <code>courses/tests.py</code>:</p>
+<div class="sourceCode" id="cb19"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> django.test <span class="im">import</span> TestCase, Client</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> .models <span class="im">import</span> Category, Course</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> CourseViewTest(TestCase):</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> setUp(<span class="va">self</span>):</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.client <span class="op">=</span> Client()</span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.category <span class="op">=</span> Category.objects.create(name<span class="op">=</span><span class="st">&#39;Mathematics&#39;</span>)</span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.course <span class="op">=</span> Course.objects.create(</span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>            title<span class="op">=</span><span class="st">&#39;Linear Algebra&#39;</span>,</span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>            instructor<span class="op">=</span><span class="st">&#39;Georgescu Ana&#39;</span>,</span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>            year<span class="op">=</span><span class="dv">2026</span>,</span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>            semester<span class="op">=</span><span class="st">&#39;fall&#39;</span>,</span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a>            category<span class="op">=</span><span class="va">self</span>.category,</span>
+<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-17"><a href="#cb19-17" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> test_list_view(<span class="va">self</span>):</span>
+<span id="cb19-18"><a href="#cb19-18" aria-hidden="true" tabindex="-1"></a>        response <span class="op">=</span> <span class="va">self</span>.client.get(<span class="st">&#39;/&#39;</span>)</span>
+<span id="cb19-19"><a href="#cb19-19" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.assertEqual(response.status_code, <span class="dv">200</span>)</span>
+<span id="cb19-20"><a href="#cb19-20" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.assertContains(response, <span class="st">&#39;Linear Algebra&#39;</span>)</span>
+<span id="cb19-21"><a href="#cb19-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-22"><a href="#cb19-22" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> test_detail_view(<span class="va">self</span>):</span>
+<span id="cb19-23"><a href="#cb19-23" aria-hidden="true" tabindex="-1"></a>        response <span class="op">=</span> <span class="va">self</span>.client.get(<span class="ss">f&#39;/</span><span class="sc">{</span><span class="va">self</span><span class="sc">.</span>course<span class="sc">.</span>pk<span class="sc">}</span><span class="ss">/&#39;</span>)</span>
+<span id="cb19-24"><a href="#cb19-24" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.assertEqual(response.status_code, <span class="dv">200</span>)</span>
+<span id="cb19-25"><a href="#cb19-25" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.assertContains(response, <span class="st">&#39;Georgescu Ana&#39;</span>)</span>
+<span id="cb19-26"><a href="#cb19-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-27"><a href="#cb19-27" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> test_detail_404(<span class="va">self</span>):</span>
+<span id="cb19-28"><a href="#cb19-28" aria-hidden="true" tabindex="-1"></a>        response <span class="op">=</span> <span class="va">self</span>.client.get(<span class="st">&#39;/9999/&#39;</span>)</span>
+<span id="cb19-29"><a href="#cb19-29" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.assertEqual(response.status_code, <span class="dv">404</span>)</span>
+<span id="cb19-30"><a href="#cb19-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-31"><a href="#cb19-31" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> test_create_requires_login(<span class="va">self</span>):</span>
+<span id="cb19-32"><a href="#cb19-32" aria-hidden="true" tabindex="-1"></a>        response <span class="op">=</span> <span class="va">self</span>.client.get(<span class="st">&#39;/new/&#39;</span>)</span>
+<span id="cb19-33"><a href="#cb19-33" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.assertEqual(response.status_code, <span class="dv">302</span>)</span>
+<span id="cb19-34"><a href="#cb19-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-35"><a href="#cb19-35" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> test_api(<span class="va">self</span>):</span>
+<span id="cb19-36"><a href="#cb19-36" aria-hidden="true" tabindex="-1"></a>        response <span class="op">=</span> <span class="va">self</span>.client.get(<span class="st">&#39;/api/courses/&#39;</span>)</span>
+<span id="cb19-37"><a href="#cb19-37" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.assertEqual(response.status_code, <span class="dv">200</span>)</span>
+<span id="cb19-38"><a href="#cb19-38" aria-hidden="true" tabindex="-1"></a>        data <span class="op">=</span> response.json()</span>
+<span id="cb19-39"><a href="#cb19-39" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.assertEqual(data[<span class="dv">0</span>][<span class="st">&#39;title&#39;</span>], <span class="st">&#39;Linear Algebra&#39;</span>)</span></code></pre></div>
+<p>Run the tests:</p>
+<div class="sourceCode" id="cb20"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> manage.py test</span></code></pre></div>
+<h2 id="exercises">Exercises</h2>
+<ol type="1">
+<li><p>Add a <code>credits</code> field (number of credits) to the
+<code>Course</code> model. Run <code>makemigrations</code> and
+<code>migrate</code>. Display the credits in the list and detail
+templates.</p></li>
+<li><p>Add a page that shows all courses in a category
+(<code>/category/&lt;int:pk&gt;/</code>). Make the category name in the
+course list a link to this page.</p></li>
+</ol>
+</div>
+</body>
+</html>
