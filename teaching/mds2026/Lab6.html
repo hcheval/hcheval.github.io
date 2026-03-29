@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lab 5</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.6.1/github-markdown.min.css" />
+  <style>
+    .markdown-body { box-sizing: border-box; min-width: 200px; max-width: 860px; margin: 40px auto; padding: 0 20px; }
+  </style>
+</head>
+<body>
+<div class="markdown-body">
+<h1 id="lab-6">Lab 6:</h1>
+<h2 id="exercise-1">Exercise 1</h2>
+<p>A debugger is a tool that allows us to stop the execution of a
+program and inspect its state at a certain point. We will consider the
+builtin python debugger in the following, but the principle applies to
+other tools like <code>gdb</code>.</p>
+<p>The basic way to use a debugger is to spawn an interactive debug
+shell and set a <code>breakpoint</code> (with the syntax
+<code>b &lt;location&gt;</code>, where <code>&lt;location&gt;</code>
+might be a line number, a function name, etc.). The program will execute
+normally until it reaches that breakpoint, where it will pause. At that
+point, we can use commands like <code>p &lt;variable&gt;</code> to print
+the value of a variable at that point, <code>c</code> to continue the
+execution until the next breakpoint, <code>n</code> to move to the next
+step in the execution and <code>s</code> to step <em>into</em> a
+function call.</p>
+<p>The following program is a simple parser and evaluator for arithmetic
+expressions.</p>
+<pre><code>import re
+
+
+def tokenize(expr):
+    &quot;&quot;&quot;Split an expression into numbers and operators.&quot;&quot;&quot;
+    return re.findall(r&#39;\d+|[+\-*()]&#39;, expr)
+
+
+def parse_factor(tokens, pos):
+    &quot;&quot;&quot;Parse a number or parenthesized expression.&quot;&quot;&quot;
+    if tokens[pos] == &#39;(&#39;:
+        val, pos = parse_expr(tokens, pos + 1)
+        return val, pos + 1  # skip &#39;)&#39;
+    return int(tokens[pos]), pos + 1
+
+
+def parse_term(tokens, pos):
+    &quot;&quot;&quot;Parse multiplication.&quot;&quot;&quot;
+    left, pos = parse_factor(tokens, pos)
+    if pos &lt; len(tokens) and tokens[pos] == &#39;*&#39;:
+        right, pos = parse_term(tokens, pos + 1)
+        return left * right, pos
+    return left, pos
+
+
+def parse_expr(tokens, pos):
+    &quot;&quot;&quot;Parse addition and subtraction.&quot;&quot;&quot;
+    left, pos = parse_term(tokens, pos)
+    if pos &lt; len(tokens) and tokens[pos] in (&#39;+&#39;, &#39;-&#39;):
+        op = tokens[pos]
+        right, pos = parse_expr(tokens, pos + 1)
+        if op == &#39;+&#39;:
+            return left + right, pos
+        else:
+            return left - right, pos
+    return left, pos
+
+
+def evaluate(expr):
+    tokens = tokenize(expr)
+    result, _ = parse_expr(tokens, 0)
+    return result
+
+
+tests = [
+    (&quot;2 + 3&quot;,         5),
+    (&quot;2 * 3 + 1&quot;,     7),
+    (&quot;10 - 3 - 2&quot;,    5),
+    (&quot;(10 - 3) * 2&quot;,  14),
+]
+
+for expr, expected in tests:
+    result = evaluate(expr)
+    status = &quot;OK&quot; if result == expected else &quot;ERROR&quot;
+    print(f&quot;{expr:&gt;16} = {result:&lt;4}  expected {expected:&lt;4} [{status}]&quot;)</code></pre>
+<p>As you can see, the third test fails. Run the program in debug mode
+with <code>python -m pdb ex1.py</code> and try to identify where the bug
+is coming from.</p>
+<h2 id="exercise-2">Exercise 2</h2>
+<p>Below is a barebones C implementation of dynamic vectors.</p>
+<pre><code>#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;string.h&gt;
+
+typedef struct {
+    int* data;
+    int size;
+    int capacity;
+} Vec;
+
+Vec* vec_new(int capacity) {
+    Vec* v = malloc(sizeof(Vec));
+    v-&gt;data = malloc(capacity * sizeof(int));
+    v-&gt;size = 0;
+    v-&gt;capacity = capacity;
+    return v;
+}
+
+void vec_push(Vec* v, int value) {
+    if (v-&gt;size == v-&gt;capacity) {
+        v-&gt;capacity *= 2;
+        int* new_data = malloc(v-&gt;capacity * sizeof(int));
+        memcpy(new_data, v-&gt;data, v-&gt;size * sizeof(int));
+        free(v-&gt;data);
+        v-&gt;data = new_data;
+    }
+    v-&gt;data[v-&gt;size++] = value;
+}
+
+void vec_free(Vec* v) {
+    free(v-&gt;data);
+    free(v);
+}
+
+int main() {
+    Vec* scores = vec_new(2);
+    vec_push(scores, 85);
+    vec_push(scores, 92);
+
+    int* top_score = &amp;scores-&gt;data[1];
+
+    vec_push(scores, 78);
+    vec_push(scores, 95);
+    vec_push(scores, 61);
+
+    printf(&quot;Top score was: %d\n&quot;, *top_score);
+
+    vec_free(scores);
+    return 0;
+}</code></pre>
+<p>If we compile and run it normally:
+<code>gcc -o ex2 ex2.c &amp;&amp; ./ex2</code> we see that the output is
+wrong. Try to identify the problem and then compile it with the address
+sanitization option: <code>gcc -fsanitize=address -g -o ex2 ex2.c</code>
+to see if it can automatically detect it.</p>
+<p>The following C++ program, which “mock installs” packages together
+with their dependencies. It first builds a list of dependencies to
+install, and the installs them (simulated here by just printing
+“installing …”). A simple compile and run
+<code>g++ -std=c++17 -o ex2b ex2b.cpp</code> shows again that some
+packages are missed. Same as before, try to discover what is happen, and
+then see if
+<code>g++ -std=c++17 -fsanitize=address -o ex2b ex2b.cpp &amp;&amp; ./ex2b</code>
+catches an error with the program.</p>
+<pre><code>#include &lt;iostream&gt;
+#include &lt;vector&gt;
+#include &lt;set&gt;
+#include &lt;map&gt;
+#include &lt;string&gt;
+
+int main() {
+    std::map&lt;std::string, std::vector&lt;std::string&gt;&gt; deps = {
+        {&quot;curl&quot;,    {&quot;openssl&quot;, &quot;nghttp2&quot;}},
+        {&quot;openssl&quot;, {&quot;zlib&quot;, &quot;libcrypt&quot;}},
+        {&quot;nghttp2&quot;, {&quot;zlib&quot;}},
+        {&quot;python&quot;,  {&quot;zlib&quot;, &quot;libffi&quot;, &quot;readline&quot;}},
+    };
+
+    std::cout &lt;&lt; &quot;Resolving dependencies... \n&quot;;
+    std::vector&lt;std::string&gt; to_install = {&quot;curl&quot;, &quot;python&quot;, &quot;vim&quot;};
+    std::set&lt;std::string&gt; seen(to_install.begin(), to_install.end());
+
+    for (const auto&amp; pkg : to_install) {
+        if (deps.count(pkg)) {
+            for (const auto&amp; dep : deps[pkg]) {
+                if (seen.insert(dep).second) {
+                    to_install.push_back(dep);
+                }
+            }
+        }
+    }
+
+    std::cout &lt;&lt; &quot;Packages to install: &quot; &lt;&lt; to_install.size() &lt;&lt; &quot; packages&quot; &lt;&lt; std::endl;
+    for (const auto&amp; pkg : to_install) {
+        std::cout &lt;&lt; &quot;  installing &quot; &lt;&lt; pkg &lt;&lt; std::endl;
+    }
+    std::cout &lt;&lt; &quot;done.&quot; &lt;&lt; std::endl;
+    return 0;
+}</code></pre>
+<h2 id="exercise-3">Exercise 3</h2>
+<p>Valgrind is a tool that runs programs in a managed execution
+environment where it can detect, among other things, memory errors like
+leaks or use-after-free’s. The following program contains 3 bugs related
+to memory-management.</p>
+<pre><code>// Compile: gcc -g -o ex3 ex3.c
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;string.h&gt;
+
+typedef struct {
+    char* name;
+    int*  grades;
+    int   count;
+} Student;
+
+Student* new_student(const char* name, int grades[], int n) {
+    Student* s = malloc(sizeof(Student));
+    s-&gt;name = malloc(strlen(name));  
+    strcpy(s-&gt;name, name);
+    s-&gt;grades = malloc(n * sizeof(int));
+    memcpy(s-&gt;grades, grades, n * sizeof(int));
+    s-&gt;count = n;
+    return s;
+}
+
+float average(Student* s) {
+    int sum = 0;
+    for (int i = 0; i &lt;= s-&gt;count; i++) {  
+        sum += s-&gt;grades[i];
+    }
+    return (float)sum / s-&gt;count;
+}
+
+void free_student(Student* s) {
+    free(s-&gt;name);
+    free(s);
+}
+
+int main() {
+    int grades[] = {85, 90, 78, 92};
+    Student* alice = new_student(&quot;Alice&quot;, grades, 4);
+    printf(&quot;%s: avg = %.1f\n&quot;, alice-&gt;name, average(alice));
+    free_student(alice);
+    return 0;
+}</code></pre>
+<p>Try first to identify them yourselves. Then, run the program in
+<code>valgrind</code>: <code>valgrind --leak-check=full ./ex3</code> and
+try to understand the output and to relate it to what actually happens
+in the code.</p>
+<h2 id="exercise-4">Exercise 4</h2>
+<p>A profiler allows us to get statistics regarding the resources used
+by the program, commonly CPU usage, or memory. An example is the
+<code>perf</code> program on Linux (search for installation instructions
+specific to your system).</p>
+<p>The following is a rather inefficient word frequency counter.</p>
+<pre><code>#include &lt;iostream&gt;
+#include &lt;fstream&gt;
+#include &lt;sstream&gt;
+#include &lt;string&gt;
+#include &lt;vector&gt;
+#include &lt;algorithm&gt;
+
+std::vector&lt;std::string&gt; tokenize(const std::string&amp; text) {
+    std::vector&lt;std::string&gt; words;
+    std::istringstream stream(text);
+    std::string word;
+    while (stream &gt;&gt; word) {
+        for (auto&amp; c : word) c = std::tolower(c);
+        words.push_back(word);
+    }
+    return words;
+}
+
+std::vector&lt;std::string&gt; unique_words(const std::vector&lt;std::string&gt;&amp; words) {
+    std::vector&lt;std::string&gt; seen;
+    for (const auto&amp; w : words) {
+        bool found = false;
+        for (const auto&amp; s : seen) {   
+            if (s == w) { found = true; break; }
+        }
+        if (!found) seen.push_back(w);
+    }
+    return seen;
+}
+
+int count_word(const std::vector&lt;std::string&gt;&amp; words, const std::string&amp; target) {
+    int n = 0;
+    for (const auto&amp; w : words) {   
+        if (w == target) n++;
+    }
+    return n;
+}
+
+int main(int argc, char* argv[]) {
+    const char* filename = argc &gt; 1 ? argv[1] : &quot;big.txt&quot;;
+    std::ifstream file(filename);
+    if (!file) { std::cerr &lt;&lt; &quot;cannot open &quot; &lt;&lt; filename &lt;&lt; std::endl; return 1; }
+
+    std::string text((std::istreambuf_iterator&lt;char&gt;(file)),
+                      std::istreambuf_iterator&lt;char&gt;());
+
+    auto words = tokenize(text);
+    auto vocab = unique_words(words);
+
+    std::vector&lt;std::pair&lt;std::string, int&gt;&gt; freqs;
+    for (const auto&amp; w : vocab) {
+        freqs.push_back({w, count_word(words, w)});
+    }
+
+    std::partial_sort(freqs.begin(),
+        freqs.begin() + std::min&lt;size_t&gt;(10, freqs.size()),
+        freqs.end(),
+        [](const auto&amp; a, const auto&amp; b) { return a.second &gt; b.second; });
+
+    for (int i = 0; i &lt; 10 &amp;&amp; i &lt; (int)freqs.size(); i++) {
+        std::cout &lt;&lt; freqs[i].first &lt;&lt; &quot; &quot; &lt;&lt; freqs[i].second &lt;&lt; std::endl;
+    }
+    return 0;
+}
+</code></pre>
+<p>Compile it and run the executable through <code>perf</code> to
+generate a so-called “flamegraph”:
+<code>perf record -g ./ex4 &amp;&amp; perf script report flamegraph &amp;&amp; firefox flamegraph.html</code>
+(change the browser accordingly if needed).</p>
+<p>You can also try to run profile a real program on your machine, for
+instance
+<code>perf record -g openssl speed -seconds 3 sha256 &amp;&amp; perf script report flamegraph &amp;&amp; firefox flamegraph.html</code></p>
+<h2 id="exercise-5">Exercise 5</h2>
+<p>C++ compiler errors related to templates are notoriously inscrutable.
+Below is a small example.</p>
+<pre><code>/*
+ * Compile: g++ -std=c++17 -o ex5 ex5.cpp
+ */
+#include &lt;iostream&gt;
+#include &lt;map&gt;
+#include &lt;vector&gt;
+#include &lt;string&gt;
+#include &lt;algorithm&gt;
+
+int main() {
+    std::map&lt;std::string, std::vector&lt;int&gt;&gt; gradebook = {
+        {&quot;alice&quot;,   {90, 85, 92}},
+        {&quot;bob&quot;,     {78, 88}},
+        {&quot;charlie&quot;, {95, 70, 80}},
+    };
+
+    std::map&lt;std::string, int&gt; averages;
+    for (auto&amp; [name, scores] : gradebook) {
+        int sum = 0;
+        for (int s : scores) sum += s;
+        averages[name] = sum / scores.size();
+    }
+
+    std::sort(averages.begin(), averages.end());
+
+    std::cout &lt;&lt; &quot;Rankings:&quot; &lt;&lt; std::endl;
+    for (auto&amp; [name, avg] : averages) {
+        std::cout &lt;&lt; &quot;  &quot; &lt;&lt; name &lt;&lt; &quot;: &quot; &lt;&lt; avg &lt;&lt; std::endl;
+    }
+
+    return 0;
+}
+</code></pre>
+<p>Try to compile the program and observe the crazy error message. Use
+an LLM to try to get a human-readable version of the message and how it
+relates to the program.</p>
+</div>
+</body>
+</html>
