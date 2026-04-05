@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lab 7</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.6.1/github-markdown.min.css" />
+  <style>
+    .markdown-body { box-sizing: border-box; min-width: 200px; max-width: 860px; margin: 40px auto; padding: 0 20px; }
+  </style>
+</head>
+<body>
+<div class="markdown-body">
+<h1 id="lab-7">Lab 7:</h1>
+<p>Threads let a program run several code sequences concurrently,
+sharing the same memory. The following exemplifies the POSIX threads
+API. Note that this is not part of the C standard library. The main
+points you should understand are the functions: pthread_create and
+pthread_join. The first one spawns a thread that will execute a function
+received as argument, while the second makes the main thread wait for a
+thread to finishing execution and get its result.</p>
+<p>The program below spawns four threads. Each one prints a message,
+sleeps for two seconds, then prints another message. <code>main</code>
+waits for all four with <code>pthread_join</code> and then exits. Read
+the man page or ask an LLM for details. Why do the two functions have
+the signature they have?</p>
+<pre><code>// sleep.c
+#include &lt;stdio.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;pthread.h&gt;
+
+void* thread_routine(void* arg) {
+    int id = *(int*)arg;
+    printf(&quot;thread %d: going to sleep\n&quot;, id);
+    sleep(2);
+    printf(&quot;thread %d: woke up\n&quot;, id);
+    return NULL;
+}
+
+int main(void) {
+    pthread_t threads[4];
+    int ids[4] = {1, 2, 3, 4};
+    for (int i = 0; i &lt; 4; i++)
+        pthread_create(&amp;threads[i], NULL, thread_routine, &amp;ids[i]);
+    for (int i = 0; i &lt; 4; i++)
+        pthread_join(threads[i], NULL);
+    printf(&quot;all threads done\n&quot;);
+    return 0;
+}</code></pre>
+<p>Note that you need to link to the <code>thread</code> library for
+compilation.</p>
+<pre><code>gcc -pthread sleep.c -o sleep
+./sleep</code></pre>
+<p>Measure the total runtime of the program.</p>
+<h2 id="exercise-1">Exercise 1</h2>
+<p>Before starting, download four large Wikipedia articles into the lab
+directory:</p>
+<pre><code>curl -sL -A &quot;mds2026-lab&quot; -o a.html &quot;https://en.wikipedia.org/wiki/Moon&quot;
+curl -sL -A &quot;mds2026-lab&quot; -o b.html &quot;https://en.wikipedia.org/wiki/Jupiter&quot;
+curl -sL -A &quot;mds2026-lab&quot; -o c.html &quot;https://en.wikipedia.org/wiki/Octopus&quot;
+curl -sL -A &quot;mds2026-lab&quot; -o d.html &quot;https://en.wikipedia.org/wiki/Coffee&quot;</code></pre>
+<p>In the example below, we want a program that computes repeated hash
+for several files (to simulate something computationally expensive).
+(you might need <code>sudo apt install libssl-dev</code> or analgous for
+your system). The function to compute this is already given and you can
+ignore the details. Finish the implementation of the program by
+completing the <code>main</code> and <code>thread_routine</code>
+functions. - Implement two versions: a single-threaded and a
+multithreaded version (with 4 threads, each compute the hash for one
+single file). The threads shouldn’t need to do more than call the
+function with the respective argument. - Compile the two versions in
+different executables (<code>hash1</code> and <code>hash4</code> below)
+and compare their performance use the <code>hyperfine</code>
+benchmarker.</p>
+<pre><code>gcc -pthread hash.c -o hash1 -lcrypto
+gcc -pthread hash.c -o hash4 -lcrypto
+hyperfine --warmup 2 ./hash1 ./hash4</code></pre>
+<pre><code>
+#define OPENSSL_SUPPRESS_DEPRECATED
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;pthread.h&gt;
+#include &lt;openssl/sha.h&gt;
+
+#define ITERS 2000000
+
+
+const char* files[4] = {&quot;a.html&quot;, &quot;b.html&quot;, &quot;c.html&quot;, &quot;d.html&quot;};
+unsigned long results[4];
+
+// you can ignore the details of this function beyond its signature 
+unsigned long stretch_hash(const char* path) {
+    FILE* f = fopen(path, &quot;r&quot;);
+    fseek(f, 0, SEEK_END);
+    long sz = ftell(f);
+    fseek(f, 0, SEEK_SET);
+    unsigned char* buf = malloc(sz);
+    fread(buf, 1, sz, f);
+    fclose(f);
+
+    unsigned char digest[32];
+    SHA256_CTX ctx;
+    SHA256_Init(&amp;ctx);
+    SHA256_Update(&amp;ctx, buf, sz);
+    SHA256_Final(digest, &amp;ctx);
+    free(buf);
+
+    for (int i = 0; i &lt; ITERS; i++) {
+        SHA256_Init(&amp;ctx);
+        SHA256_Update(&amp;ctx, digest, 32);
+        SHA256_Final(digest, &amp;ctx);
+    }
+
+    unsigned long sum = 0;
+    for (int i = 0; i &lt; 32; i++) sum += digest[i];
+    return sum;
+}
+
+void* thread_routine(void* arg) {
+    // TO IMPLEMENT 
+}
+
+int main(int argc, char** argv) {
+    // TO IMPLEMENT 
+}</code></pre>
+<h2 id="exercise-2">Exercise 2</h2>
+<p>Generalize Exercise 1 to handle an arbitrary number of files and an
+arbitrary number of threads (so, for example, all threads could be
+occupied at a certain time if we have more files than threads). Let the
+parameters be passed as CLI arguments.</p>
+<h2 id="exercise-3">Exercise 3</h2>
+<p>Write a program containing two threads that each increase a counter
+(a global variable <code>int counter = 0</code>) a large number of times
+(say <code>100000</code>). The expected result should be
+<code>200000</code>. Run the program several times and notice that some
+runs return nonsense values.</p>
+<h2 id="exercise-4">Exercise 4</h2>
+<p>The reason for the failure in Exercise 3 is that integer
+incrementation is a <em>non-atomic</em> operation, meaning essentially
+that the two threads can become interleaved when executing its
+underlying primitive operations. This is known as a data race, and is a
+root of whole field of problems and solutions, which are beyond the
+scope of this lab.</p>
+<p>In the program from Exercise 3, change the type of the global
+<code>int counter = 0;</code> to <code>_Atomic int counter = 0;</code>
+(you might need to compile with the flag <code>-std=c11</code> for
+this). The program should now give the correct result. Benchmark the two
+versions again (this one and the one from <code>Exercise 4</code>) using
+<code>hyperfine</code>.</p>
+</div>
+</body>
+</html>
