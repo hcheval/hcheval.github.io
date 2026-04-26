@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lab 9</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.6.1/github-markdown.min.css" />
+  <style>
+    .markdown-body { box-sizing: border-box; min-width: 200px; max-width: 860px; margin: 40px auto; padding: 0 20px; }
+  </style>
+</head>
+<body>
+<div class="markdown-body">
+<h1 id="lab-9">Lab 9</h1>
+<p>At https://github.com/hcheval/rssmds there is a small implementation
+of an <a href="https://en.wikipedia.org/wiki/RSS">RSS</a> feed reader
+that runs in the terminal, stores entries in SQLite, and includes a web
+interface (about 1300 lines of Python across 8 modules).</p>
+<p>Clone the repository, set up the environment, and make sure both the
+tests and the type checker pass before moving on. Then try the app
+out:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> rssmds add <span class="st">&quot;https://hnrss.org/newest?count=5&quot;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> rssmds add <span class="st">&quot;https://blog.rust-lang.org/feed.xml&quot;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> rssmds fetch</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> rssmds list</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> rssmds read 1</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> rssmds stats</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> rssmds serve   <span class="co"># open http://127.0.0.1:8080</span></span></code></pre></div>
+<p>The point of the lab is to navigate and modify the codebase at first
+encounter using a coding agent. You can use <code>opencode</code> for
+this as in previous labs, or whatever tool you prefer.</p>
+<h2 id="exercise-1">Exercise 1</h2>
+<p>Answer the following by reading the source code.</p>
+<ol type="1">
+<li><p>What happens when <code>rssmds add</code> is called with a URL
+that already exists in the database? Trace the path from the CLI entry
+point through to the database layer.</p></li>
+<li><p>The fetcher avoids re-downloading feeds that haven’t changed
+since the last fetch. What HTTP mechanism does it use, and which
+function implements it?</p></li>
+<li><p>The <code>discover</code> command tries several strategies to
+find feeds on a webpage. List them in the order they are attempted and
+explain when each one kicks in.</p></li>
+<li><p>Use the coding agent to generate a <a
+href="https://mermaid.js.org/">Mermaid</a> sequence diagram for the
+<code>rssmds fetch</code> flow. It should start from the CLI dispatch
+and end with entries stored in the database, covering both the case
+where the feed has new content and the case where the server returns a
+304. Read the generated diagram against the code and fix anything that
+might be mismatched. To render and edit the diagram, <a
+href="https://mermaid.live">Mermaid Live Editor</a> works in the browser
+with no setup.</p></li>
+</ol>
+<h2 id="exercise-2">Exercise 2</h2>
+<p>Pick one of the features below, or propose one of your own as long as
+it touches at least two modules. Write a short specification (a
+paragraph is enough) and then use the coding agent to implement it. Once
+the agent produces code:</p>
+<ul>
+<li>Verify it works by running the app.</li>
+<li>Run <code>pytest</code> and make sure the existing tests still
+pass.</li>
+<li>Write at least 3 tests for the new feature, covering the normal path
+and an edge case or two.</li>
+<li>Run <code>mypy rssmds/ --strict</code> and fix any type errors the
+agent introduced.</li>
+<li>Read the diff. Check for anything the agent got wrong.</li>
+</ul>
+<p>Possible features:</p>
+<ul>
+<li><p><strong>Search.</strong> <code>rssmds search "keyword"</code>
+searches entry titles and summaries, displaying results in the same
+format as <code>list</code>. This requires a new query in
+<code>db.py</code> and a new subcommand in <code>cli.py</code>, with an
+optional search bar in <code>web.py</code>.</p></li>
+<li><p><strong>Star/bookmark entries.</strong>
+<code>rssmds star 42</code> bookmarks an entry and
+<code>rssmds starred</code> lists all bookmarked entries. This requires
+a schema change in <code>db.py</code> (a new column or table) along with
+new CLI subcommands, and optionally a star button in the web
+UI.</p></li>
+<li><p><strong>OPML import.</strong>
+<code>rssmds import feeds.opml</code> parses an <a
+href="https://en.wikipedia.org/wiki/OPML">OPML</a> file and subscribes
+to all feeds in it. Since the export side already exists
+(<code>rssmds export opml</code>), import is the natural complement,
+requiring a new CLI subcommand and a parser for the OPML
+format.</p></li>
+<li><p><strong>Purge old entries.</strong>
+<code>rssmds purge --older-than 30d</code> deletes entries older than a
+threshold. The database function <code>db.purge_entries</code> already
+exists but has no CLI command, and the date arithmetic for parsing “30d”
+into a cutoff date is missing.</p></li>
+<li><p><strong>Feed categories.</strong>
+<code>rssmds add --category tech "https://..."</code> assigns a category
+and <code>rssmds list --category tech</code> filters by it. This
+requires a schema change, modifications to the <code>add</code> and
+<code>list</code> commands, and ideally filtering in the web UI as
+well.</p></li>
+</ul>
+</div>
+</body>
+</html>
