@@ -11,90 +11,147 @@
 </head>
 <body>
 <div class="markdown-body">
-<h1 id="setup-installation">Setup &amp; Installation</h1>
-<pre class="dafny"><code>/*
-  ############################################################
-  ### SETUP &amp; INSTALLATION
-  ############################################################
-
-  This lab runs in GitHub Codespaces, no local install needed (though you can install Dafny locally if you prefer). 
-  1. Go to https://github.com/hcheval/mds-dafny-lab. (you will find the same lab file there).
-  2. Click the green &quot;Code&quot; button, then &quot;Codespaces&quot;, then &quot;Create codespace&quot;.
-  3. Wait for the environment to load (this may take a minute).
-  4. Open this file in the editor.
-  5. Open a terminal (Ctrl+`) and run:
-
-       dafny verify Lab1_Basics.dfy
-
-  The Dafny extension will also show inline red squiggles as you
-  type, but may take a moment to start.
-*/</code></pre>
-<h1 id="introduction">Introduction</h1>
-<pre class="dafny"><code>/*
-  ############################################################
-  ### INTRODUCTION
-  ############################################################
-
-  Dafny is a programming language with built-in verification.
-  Programs are written alongside specifications, and Dafny checks
-  that the code satisfies the specification for every possible input.
-
-  This is different from testing, which only checks the inputs you
-  thought to try (or generated automatically). A program can pass all its tests and still be wrong
-  if the specification is too weak, or if the specification itself
-  does not capture what you intended.
-*/</code></pre>
-<h1 id="examples-exercises">Examples &amp; Exercises</h1>
+<h2 id="setup-installation">Setup &amp; Installation</h2>
+<p>This lab runs in GitHub Codespaces, no local install needed (though
+you can install Dafny locally if you prefer).</p>
+<ol type="1">
+<li>Go to https://github.com/hcheval/mds-dafny-lab. (you will find the
+same lab file there).</li>
+<li>Click the green “Code” button, then “Codespaces”, then “Create
+codespace”.</li>
+<li>Wait for the environment to load (this may take a minute).</li>
+<li>Open this file in the editor.</li>
+<li>Open a terminal (Ctrl+`) and run:</li>
+</ol>
+<div class="sourceCode" id="cb1"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">dafny</span> verify Lab1_Basics.dfy</span></code></pre></div>
+<p>The Dafny extension will also show inline red squiggles as you type,
+but may take a moment to start.</p>
+<hr />
+<h2 id="introduction">Introduction</h2>
+<p>Dafny is a programming language with built-in verification. Programs
+are written alongside specifications, and Dafny checks that the code
+satisfies the specification for every possible input.</p>
+<p>This is different from testing, which only checks the inputs you
+thought to try (or generated automatically). A program can pass all its
+tests and still be wrong if the specification is too weak, or if the
+specification itself does not capture what you intended.</p>
+<hr />
+<p>An <code>ensures</code> clause is a postcondition: a property Dafny
+will check holds whenever the method returns.</p>
 <pre class="dafny"><code>method Double(x: int) returns (y: int)
   ensures y == 2 * x
 {
   y := x + x;
 }</code></pre>
+<p>Try breaking the implementation by changing <code>x + x</code> to
+<code>x + 1</code>. Dafny should reject it.</p>
+<hr />
+<h2 id="exercise-1-absolute-value">Exercise 1: Absolute Value</h2>
+<p>Implement <code>Abs</code> so that both postconditions are satisfied.
+Hint: use an if/else on <code>x</code>.</p>
 <pre class="dafny"><code>method Abs(x: int) returns (y: int)
   ensures y &gt;= 0
   ensures y == x || y == -x
 {
-  y := 0; // TODO
+  y := 0; // TODO: replace with a correct implementation
 }</code></pre>
+<hr />
+<p>A <code>requires</code> clause is a precondition: a constraint on the
+inputs that any caller must satisfy. Dafny will reject call sites that
+cannot prove the precondition holds.</p>
+<p>Division by zero is undefined, so the method below requires
+<code>y != 0</code>.</p>
 <pre class="dafny"><code>method Divide(x: int, y: int) returns (r: int)
   requires y != 0
   ensures r == x / y
 {
   r := x / y;
 }</code></pre>
+<hr />
+<h2 id="exercise-2-max">Exercise 2: Max</h2>
+<p>Implement <code>Max</code>. The two postconditions together express
+that <code>m</code> is at least as large as both inputs and equals one
+of them, which fully pins down what max means.</p>
 <pre class="dafny"><code>method Max(x: int, y: int) returns (m: int)
   ensures m &gt;= x &amp;&amp; m &gt;= y
   ensures m == x || m == y
 {
-  m := x; // TODO
+  m := x; // TODO: replace with a correct implementation
 }</code></pre>
+<hr />
+<p>The method below verifies, but is clearly wrong:</p>
 <pre class="dafny"><code>method MaxWeak(x: int, y: int) returns (m: int)
   ensures m &gt;= x &amp;&amp; m &gt;= y
 {
-  m := x + y + 1;
+  m := x + y + 1; // not a max, but Dafny accepts it!
 }</code></pre>
+<p>Dafny accepts this because the specification is too weak. Saying that
+<code>m</code> is an upper bound on <code>x</code> and <code>y</code> is
+not enough to pin down max, since any sufficiently large value will
+do.</p>
+<hr />
+<h2 id="exercise-3-strengthen-the-specification">Exercise 3: Strengthen
+the Specification</h2>
+<p>Add a second <code>ensures</code> clause to <code>MaxWeakFixed</code>
+so that the bogus implementation above is rejected. Change only the
+spec, not the body.</p>
 <pre class="dafny"><code>method MaxWeakFixed(x: int, y: int) returns (m: int)
   ensures m &gt;= x &amp;&amp; m &gt;= y
-  // TODO: add ensures
+  // TODO: add a second ensures clause here
 {
-  m := x + y + 1;
+  m := x + y + 1; // Dafny should reject this once your spec is strong enough
 }</code></pre>
+<hr />
+<h2 id="exercise-4-specify-the-bank-transfer">Exercise 4: Specify the
+Bank Transfer</h2>
+<p>Specifications encode assumptions about the real world, and choosing
+what to specify is a design decision.</p>
+<p>Add <code>requires</code> and <code>ensures</code> clauses to
+<code>TransferSpec</code> below. Think through each of these:</p>
+<ul>
+<li><strong>(a) Conservation:</strong> should total money be preserved?
+Hint: what should <code>(a2 + b2)</code> equal?</li>
+<li><strong>(b) Validity:</strong> should either balance be allowed to
+go negative? Hint: add a <code>requires</code> relating <code>a</code>
+and <code>amount</code>.</li>
+<li><strong>(c) Direction:</strong> should <code>amount</code> be
+required to be positive? What goes wrong if amount is negative or
+zero?</li>
+</ul>
+<p>Start with (a), which captures the most fundamental property.</p>
 <pre class="dafny"><code>method TransferSpec(a: int, b: int, amount: int) returns (a2: int, b2: int)
-  requires true
-  ensures true
+  requires true // TODO: replace with real preconditions
+  ensures true  // TODO: replace with real postconditions
 {
   a2 := a - amount;
   b2 := b + amount;
 }</code></pre>
+<hr />
+<p>Array accesses in Dafny are checked at verification time. If Dafny
+cannot prove an access is in bounds, it will not compile the
+program.</p>
 <pre class="dafny"><code>method GetAt(arr: array&lt;int&gt;, i: int) returns (x: int)
   requires 0 &lt;= i &lt; arr.Length
 {
   x := arr[i];
 }</code></pre>
+<hr />
+<h2 id="exercise-5-unsafe-access">Exercise 5: Unsafe Access</h2>
+<p>The method below omits the precondition. Observe the error Dafny
+reports on the array access, and compare it to what would happen at
+runtime in Java or Python. Which would you rather have, and why?</p>
 <pre class="dafny"><code>method GetAtUnsafe(arr: array&lt;int&gt;, i: int) returns (x: int)
 {
-  x := arr[i];
+  x := arr[i]; // &lt;-- Dafny should report: index out of range
 }</code></pre>
+<hr />
+<p>Dafny does not verify loops by running them. Instead, it asks for a
+loop invariant: a property that holds before the loop begins, is
+preserved by every iteration, and together with the exit condition
+implies the postcondition. This is the core idea behind Hoare logic.</p>
+<p>The method below does not verify because Dafny has no information
+about what <code>s</code> represents at each step. <code>SumFixed</code>
+is your version to complete.</p>
 <pre class="dafny"><code>method Sum(n: int) returns (s: int)
   requires n &gt;= 0
   ensures s == n * (n + 1) / 2
@@ -107,6 +164,21 @@
     i := i + 1;
   }
 }</code></pre>
+<hr />
+<h2 id="exercise-6-add-loop-invariants-to-sumfixed">Exercise 6: Add Loop
+Invariants to SumFixed</h2>
+<p>You need two invariants:</p>
+<ul>
+<li><strong>(a) A range invariant:</strong> what are the possible values
+of <code>i</code>? Hint: <code>i</code> starts at 0 and increases; what
+is its upper bound?</li>
+<li><strong>(b) A value invariant:</strong> what does <code>s</code>
+equal at the start of iteration <code>i</code>? Hint: after processing
+<code>0..i-1</code>, what closed-form equals <code>s</code>?</li>
+</ul>
+<p>Both must hold before the loop (check with <code>i=0</code>,
+<code>s=0</code>), be preserved by each iteration, and together imply
+the postcondition when the loop exits at <code>i = n+1</code>.</p>
 <pre class="dafny"><code>method SumFixed(n: int) returns (s: int)
   requires n &gt;= 0
   ensures s == n * (n + 1) / 2
@@ -114,13 +186,20 @@
   s := 0;
   var i := 0;
   while i &lt;= n
-    invariant true
-    invariant true
+    invariant true // TODO: replace with range invariant, e.g. 0 &lt;= i &lt;= ?
+    invariant true // TODO: replace with value invariant, e.g. s == ?
   {
     s := s + i;
     i := i + 1;
   }
 }</code></pre>
+<hr />
+<p>Finding the maximum of an array requires reasoning about all elements
+at once. The postcondition below uses a universal quantifier to express
+this: for every valid index <code>i</code>,
+<code>m &gt;= arr[i]</code>.</p>
+<p>Without invariants, Dafny cannot establish this postcondition because
+it has no account of what <code>m</code> represents mid-loop.</p>
 <pre class="dafny"><code>method MaxArray(arr: array&lt;int&gt;) returns (m: int)
   requires arr.Length &gt; 0
   ensures forall i :: 0 &lt;= i &lt; arr.Length ==&gt; m &gt;= arr[i]
@@ -135,6 +214,19 @@
     i := i + 1;
   }
 }</code></pre>
+<p>You need two invariants:</p>
+<ul>
+<li><strong>(a) A range invariant:</strong> what are the valid values of
+<code>i</code>? Hint: <code>i</code> starts at 1 and never exceeds
+<code>arr.Length</code>.</li>
+<li><strong>(b) A maximality invariant:</strong> what does
+<code>m</code> represent so far? Hint: <code>m</code> is the max of
+<code>arr[0..i)</code>. Express this with a <code>forall</code>
+quantifier over the indices already visited.</li>
+</ul>
+<p>When the loop exits at <code>i == arr.Length</code>, the maximality
+invariant covers the whole array, which is exactly the
+postcondition.</p>
 <pre class="dafny"><code>method MaxArrayFixed(arr: array&lt;int&gt;) returns (m: int)
   requires arr.Length &gt; 0
   ensures forall i :: 0 &lt;= i &lt; arr.Length ==&gt; m &gt;= arr[i]
@@ -142,8 +234,8 @@
   m := arr[0];
   var i := 1;
   while i &lt; arr.Length
-    invariant true
-    invariant true
+    invariant true // TODO: replace with range invariant
+    invariant true // TODO: replace with maximality invariant over arr[0..i)
   {
     if arr[i] &gt; m {
       m := arr[i];
