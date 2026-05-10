@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lab 11</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.6.1/github-markdown.min.css" />
+  <style>
+    .markdown-body { box-sizing: border-box; min-width: 200px; max-width: 860px; margin: 40px auto; padding: 0 20px; }
+  </style>
+</head>
+<body>
+<div class="markdown-body">
+<h1 id="lab-11-model-checking">Lab 11: Model Checking</h1>
+<p>A model checker takes a finite description of a system and a
+property, then explores every reachable state to determine whether the
+property holds everywhere. If it finds a violation it returns the exact
+sequence of steps that led to it, so rare interleavings that testing
+would need thousands of runs to encounter are guaranteed to surface.</p>
+<p>There are several mature model checkers out there; for the lab we
+will use https://github.com/fizzbee-io/fizzbee because it has an online
+playground that can be used with no installation https://fizzbee.io/play
+(it doesn’t show any progress bar when running, but it does run).</p>
+<h2 id="actions-and-state-spaces">1: Actions and State Spaces</h2>
+<p>FizzBee programs are built from actions. <code>Init</code> runs once
+to set up the initial state, and every other action fires repeatedly in
+any order until nothing is enabled. A first simple example is that of a
+clock that increments every hour, modulo 12.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>action Init:</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  hour <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>atomic action Tick:</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  hour <span class="op">=</span> (hour <span class="op">%</span> <span class="dv">12</span>) <span class="op">+</span> <span class="dv">1</span></span></code></pre></div>
+<p>Paste this into the playground, click Run, then States Graph, and
+note how twelve reachable states appear in a cycle. Here,
+<code>atomic action</code> means the entire body executes as one
+indivisible step, so no intermediate state exists where
+<code>hour</code> is mid-update.</p>
+<h3 id="block-modifiers">Block modifiers</h3>
+<p>The body of an action can receive a block modifier:</p>
+<ul>
+<li><code>atomic:</code> all statements as one step, no
+interleaving</li>
+<li><code>serial:</code> statements in order, with yield points between
+them where other actions can interleave</li>
+<li><code>oneof:</code> exactly one statement executes
+(non-deterministic choice)</li>
+<li><code>parallel:</code> statements in any order, also with yield
+points</li>
+</ul>
+<p>Without a modifier the default is <code>serial</code>, so
+interleaving between consecutive statements is always possible unless
+explicitly prevented.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>action Init:</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  a <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  b <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>action Add:</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  atomic:</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    a <span class="op">=</span> (a <span class="op">+</span> <span class="dv">1</span>) <span class="op">%</span> <span class="dv">3</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    b <span class="op">=</span> (b <span class="op">+</span> <span class="dv">1</span>) <span class="op">%</span> <span class="dv">3</span></span></code></pre></div>
+<p>Run this and open States Graph. <code>a</code> and <code>b</code>
+always move together because <code>atomic</code> prevents interleaving.
+Change <code>atomic:</code> to <code>serial:</code> and the state space
+grows: the checker now explores states where <code>a</code> has been
+incremented but <code>b</code> has not yet, because another action (or
+another instance of Add) could fire between those two statements.</p>
+<h3 id="non-deterministic-choice">Non-deterministic choice</h3>
+<p>The <code>any</code> keyword picks one value from a collection
+non-deterministically, and the checker explores all possible
+choices.</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>action Init:</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  value <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="bu">any</span> x <span class="kw">in</span> [<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>]:</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    value <span class="op">=</span> x</span></code></pre></div>
+<p>Run this and compare the state graph with the same code using
+<code>for</code> instead of <code>any</code>. With <code>for</code> the
+final value is always 6, but with <code>any</code> the checker explores
+three branches where value ends up as 1, 2, or 3.</p>
+<h3 id="exercise-1">Exercise 1</h3>
+<p>Change the <code>Add</code> action above to use <code>oneof:</code>
+instead of <code>atomic:</code>. Run, open the state graph, and compare
+it with what <code>serial</code> and <code>atomic</code> produced.</p>
+<h2 id="safety">2: Safety</h2>
+<p>A safety property asserts that something bad never happens. The
+checker verifies it against every single reachable state.</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>always assertion AlwaysLessThan3:</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> value <span class="op">&lt;=</span> <span class="dv">3</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>action Init:</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  value <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="bu">any</span> x <span class="kw">in</span> <span class="bu">range</span>(<span class="op">-</span><span class="dv">2</span>, <span class="dv">2</span>):</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    value <span class="op">=</span> x</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>atomic action Add:</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> value <span class="op">&lt;</span> <span class="dv">3</span>:</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    value <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  <span class="cf">else</span>:</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    value <span class="op">=</span> <span class="dv">0</span></span></code></pre></div>
+<p><code>any x in range(-2, 2)</code> means the initial value can be -2,
+-1, 0, or 1, so the checker branches into four parallel explorations
+from the start. The <code>always assertion</code> then checks
+<code>value &lt;= 3</code> across all reachable states in all branches,
+and running it confirms it passes.</p>
+<h3 id="exercise-2">Exercise 2</h3>
+<p>Change the assertion to <code>value &lt;= 2</code>. Run and observe
+the violation trace that shows how value reaches 3 (In the “Error Graph”
+tab). Then change the <code>if</code> condition so the assertion passes
+again.</p>
+<h3 id="transition-invariants">Transition invariants</h3>
+<p>State invariants check individual states. Sometimes that is not
+enough, and we need to constrain which transitions between states are
+legal. A <code>transition assertion</code> receives the before and after
+state of each step.</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>MAX_HOUR<span class="op">=</span><span class="dv">12</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>action Init:</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  hour <span class="op">=</span> MAX_HOUR</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  meridiem <span class="op">=</span> <span class="st">&quot;am&quot;</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>atomic action HourChange:</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  hour <span class="op">=</span> (hour <span class="op">%</span> MAX_HOUR) <span class="op">+</span> <span class="dv">1</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>atomic action MeridiemChange:</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>  meridiem <span class="op">=</span> <span class="st">&quot;pm&quot;</span> <span class="cf">if</span> meridiem <span class="op">==</span> <span class="st">&quot;am&quot;</span> <span class="cf">else</span> <span class="st">&quot;am&quot;</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>transition assertion ClockBehavior(before, after):</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> before.meridiem <span class="op">!=</span> after.meridiem:</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> before.hour <span class="op">==</span> MAX_HOUR <span class="op">-</span> <span class="dv">1</span> <span class="kw">and</span> after.hour <span class="op">==</span> MAX_HOUR</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>  <span class="cf">else</span>:</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> (before.hour <span class="op">==</span> <span class="dv">12</span> <span class="kw">and</span> after.hour <span class="op">==</span> <span class="dv">1</span>) <span class="kw">or</span> (after.hour <span class="op">==</span> before.hour <span class="op">+</span> <span class="dv">1</span>)</span></code></pre></div>
+<p>This models a clock with separate actions for hour change and
+meridiem change, where the transition assertion says meridiem can only
+flip when the hour goes from 11 to 12. Run it and the assertion fails
+because <code>MeridiemChange</code> can fire at any time
+independently.</p>
+<h3 id="exercise-3">Exercise 3</h3>
+<p>Fix the model by removing the <code>MeridiemChange</code> action and
+putting the meridiem logic inside <code>HourChange</code> (flip meridiem
+when hour reaches 12). Verify the transition assertion passes.</p>
+<h2 id="guard-clauses-and-deadlock">3: Guard Clauses and Deadlock</h2>
+<p>FizzBee determines whether an action is enabled by a simple rule: at
+least one assignment must actually execute during the action’s body. If
+an <code>if</code> branch is not taken and nothing gets assigned, the
+action is disabled for that state.</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>action Init:</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  switch <span class="op">=</span> <span class="st">&quot;OFF&quot;</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>atomic action On:</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> switch <span class="op">!=</span> <span class="st">&quot;ON&quot;</span>:</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    switch <span class="op">=</span> <span class="st">&quot;ON&quot;</span></span></code></pre></div>
+<p>Running this produces a deadlock because once the switch is “ON” the
+<code>if</code> condition is false, nothing gets assigned, and the
+system is stuck with no enabled action.</p>
+<p><code>require</code> is a more explicit way to write the same thing.
+When the condition is false it disables the action and aborts
+immediately, without needing to structure the guard as an
+<code>if</code>.</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>action Init:</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  switch <span class="op">=</span> <span class="st">&quot;OFF&quot;</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>atomic action On:</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  require switch <span class="op">!=</span> <span class="st">&quot;ON&quot;</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  switch <span class="op">=</span> <span class="st">&quot;ON&quot;</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>atomic action Off:</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  require switch <span class="op">!=</span> <span class="st">&quot;OFF&quot;</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>  switch <span class="op">=</span> <span class="st">&quot;OFF&quot;</span></span></code></pre></div>
+<p>With both actions present the system alternates between ON and OFF
+indefinitely, and the deadlock disappears.</p>
+<h3 id="exercise-4">Exercise 4</h3>
+<p>Model a traffic light that cycles through “red”, “green”, “yellow”
+using three actions with guard clauses (each action only fires when the
+light is in the correct preceding state). Verify there is no deadlock
+and the state graph forms a 3-state cycle.</p>
+<h3 id="exercise-5">Exercise 5</h3>
+<p>Add a <code>Broken</code> action that can fire from any non-broken
+state and sets the light to “broken”. Observe the deadlock. Then add a
+<code>Fix</code> action that transitions from “broken” back to “red” and
+verify the deadlock is resolved.</p>
+<h2 id="liveness-and-fairness">4: Liveness and Fairness</h2>
+<p>Liveness is the complement of safety. A safety property forbids bad
+states, and a liveness property demands that good states are eventually
+reached. FizzBee supports two temporal forms:</p>
+<ul>
+<li><code>always eventually</code> asserts the system keeps returning to
+a given state forever, no matter how far it drifts</li>
+<li><code>eventually always</code> asserts the system reaches a state
+and never leaves it again (stability)</li>
+</ul>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>always eventually assertion BecomeZero:</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> value <span class="op">==</span> <span class="dv">0</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>action Init:</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  value <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="bu">any</span> x <span class="kw">in</span> <span class="bu">range</span>(<span class="op">-</span><span class="dv">2</span>, <span class="dv">2</span>):</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    value <span class="op">=</span> x</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>atomic action Add:</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> value <span class="op">&lt;</span> <span class="dv">3</span>:</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>    value <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>  <span class="cf">else</span>:</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>    value <span class="op">=</span> <span class="dv">0</span></span></code></pre></div>
+<p>Running this shows that liveness fails with a “stutter” trace, which
+is an execution where nothing fires after Init. <code>Add</code> is
+enabled but nothing forces it to execute, so the checker considers an
+infinite idle execution valid.</p>
+<p>To resolve this, change <code>atomic action Add:</code> to
+<code>atomic fair action Add:</code>. The <code>fair</code> keyword
+tells the checker that an action which remains continuously enabled will
+eventually fire, which excludes the stutter execution and allows the
+liveness property to pass.</p>
+<h3 id="weak-vs-strong-fairness">Weak vs strong fairness</h3>
+<ul>
+<li><code>fair</code> (or <code>fair&lt;weak&gt;</code>): the action
+will eventually fire if it remains continuously enabled without
+interruption</li>
+<li><code>fair&lt;strong&gt;</code>: the action will eventually fire if
+it is enabled infinitely often, even with interruptions in between</li>
+</ul>
+<p>The distinction matters when an action’s guard flickers on and
+off:</p>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>action Init:</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  status <span class="op">=</span> <span class="st">&quot;idle&quot;</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>atomic action Process:</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> status <span class="op">==</span> <span class="st">&quot;idle&quot;</span>:</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    status <span class="op">=</span> <span class="st">&quot;working&quot;</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>atomic action Finish:</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> status <span class="op">==</span> <span class="st">&quot;working&quot;</span>:</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>    status <span class="op">=</span> <span class="st">&quot;idle&quot;</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>atomic action Shutdown:</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> status <span class="op">!=</span> <span class="st">&quot;working&quot;</span>:</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>    status <span class="op">=</span> <span class="st">&quot;shutdown&quot;</span></span></code></pre></div>
+<p>The system cycles between “idle” and “working”. <code>Shutdown</code>
+can only fire from “idle”, so every time <code>Process</code> fires and
+status becomes “working”, <code>Shutdown</code> is disabled again. It is
+not continuously enabled, just repeatedly enabled. Weak fairness does
+not help here. Strong fairness is what guarantees <code>Shutdown</code>
+eventually fires, because it only requires the action to be enabled
+infinitely often, not continuously.</p>
+<h3 id="exercise-6">Exercise 6</h3>
+<p>Add
+<code>always eventually assertion SafelyShutdown: return status == "shutdown"</code>
+to the model above. Add <code>fair</code> to <code>Shutdown</code> and
+verify it fails. Then change to <code>fair&lt;strong&gt;</code> and
+verify it passes.</p>
+<h3 id="exercise-7">Exercise 7</h3>
+<p>Model the following request processing system and verify
+liveness:</p>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>always eventually assertion SafelyShutdown:</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> status <span class="op">==</span> <span class="st">&quot;shutdown&quot;</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>always eventually assertion Working:</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> status <span class="op">==</span> <span class="st">&quot;working&quot;</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>action Init:</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>  status <span class="op">=</span> <span class="st">&quot;idle&quot;</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>atomic fair<span class="op">&lt;</span>strong<span class="op">&gt;</span> action Start:</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> status <span class="op">==</span> <span class="st">&quot;idle&quot;</span>:</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>    status <span class="op">=</span> <span class="st">&quot;working&quot;</span></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>atomic fair action Finish:</span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> status <span class="op">==</span> <span class="st">&quot;working&quot;</span>:</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>    status <span class="op">=</span> <span class="st">&quot;idle&quot;</span></span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>atomic fair<span class="op">&lt;</span>strong<span class="op">&gt;</span> action Shutdown:</span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> status <span class="kw">not</span> <span class="kw">in</span> [<span class="st">&quot;working&quot;</span>, <span class="st">&quot;failed&quot;</span>]:</span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>    status <span class="op">=</span> <span class="st">&quot;shutdown&quot;</span></span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>atomic action Fail:</span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> status <span class="op">!=</span> <span class="st">&quot;shutdown&quot;</span>:</span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>    status <span class="op">=</span> <span class="st">&quot;failed&quot;</span></span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>atomic fair action Fix:</span>
+<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> status <span class="op">==</span> <span class="st">&quot;failed&quot;</span>:</span>
+<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a>    status <span class="op">=</span> <span class="st">&quot;idle&quot;</span></span>
+<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a>atomic fair action Restart:</span>
+<span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> status <span class="op">==</span> <span class="st">&quot;shutdown&quot;</span>:</span>
+<span id="cb10-32"><a href="#cb10-32" aria-hidden="true" tabindex="-1"></a>    status <span class="op">=</span> <span class="st">&quot;idle&quot;</span></span></code></pre></div>
+<p>Run this and verify both liveness properties pass. Then experiment
+with breaking the model:</p>
+<ul>
+<li>Remove <code>fair&lt;strong&gt;</code> from <code>Start</code> and
+make it just <code>fair</code>. Run. Does <code>Working</code> still
+hold?</li>
+<li>Restore <code>Start</code> but remove <code>fair</code> from
+<code>Fix</code>. The system can now get stuck in “failed” forever
+because nothing forces <code>Fix</code> to fire.</li>
+<li>Make <code>Fail</code> fair (<code>atomic fair action Fail</code>).
+Run and look at the state graph. What does this imply about the system’s
+behavior?</li>
+<li>Add
+<code>eventually always assertion StayShutdown: return status == "shutdown"</code>.
+This asks whether the system eventually shuts down and stays down. Run
+and observe why it cannot hold.</li>
+</ul>
+</div>
+</body>
+</html>
