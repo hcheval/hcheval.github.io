@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lab 12</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.6.1/github-markdown.min.css" />
+  <style>
+    .markdown-body { box-sizing: border-box; min-width: 200px; max-width: 860px; margin: 40px auto; padding: 0 20px; }
+  </style>
+</head>
+<body>
+<div class="markdown-body">
+<h1 id="lab-12-spec-driven-development">Lab 12: Spec-Driven
+Development</h1>
+<p>Spec-driven development means writing a structured specification of
+what a change should do before any code is generated, so that the AI
+implements against that spec rather than improvising from a loose
+prompt. This lab uses <a
+href="https://github.com/Fission-AI/OpenSpec">OpenSpec</a>, a
+lightweight framework that adds an <code>openspec/</code> directory to a
+repo containing project descriptions, specifications, and change
+proposals, and that works with any AI coding tool.</p>
+<p>We will work with a small CLI task manager (<code>cli.py</code>) that
+reads and writes <code>tasks.json</code>. Three commands exist already
+(<code>add</code>, <code>list</code>, <code>complete</code>), and a
+fourth, <code>delete</code>, is stubbed out. The task is to implement
+delete with archiving, so that deleted tasks move to
+<code>archive.json</code> rather than disappearing.</p>
+<p>The interesting part is everything that one-line description leaves
+open: what should happen when someone deletes a nonexistent ID, what
+fields the archive entry should contain, whether task IDs get reused
+after deletion, and whether archiving preserves the original timestamp
+or adds a new one. Without a spec to pin these decisions down, a model
+will resolve all of them silently, possibly inconsistently across
+runs.</p>
+<h2 id="setup">Setup</h2>
+<p>Start by installing OpenSpec:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> i <span class="at">-g</span> @fission-ai/openspec@latest</span></code></pre></div>
+<p>Download the starter files (<a href="cli.py" download><code>cli.py</code></a>), place them in a
+folder, and initialize a git repo along with OpenSpec:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> init <span class="kw">&amp;&amp;</span> <span class="fu">git</span> add <span class="at">-A</span> <span class="kw">&amp;&amp;</span> <span class="fu">git</span> commit <span class="at">-m</span> <span class="st">&quot;initial&quot;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">openspec</span> init</span></code></pre></div>
+<p>Once that is done, open the project in OpenCode and switch to a free
+model with the <code>/model</code> command (e.g. <code>glm-4.7</code>,
+<code>minimax-2.5</code>).</p>
+<p>OpenSpec works through slash commands typed inside OpenCode rather
+than from the terminal. The CLI (<code>openspec init</code>,
+<code>openspec list</code>) handles project setup, but the actual change
+workflow happens via <code>/opsx-propose</code>,
+<code>/opsx-apply</code>, and so on.</p>
+<h2 id="spec-driven">Spec-Driven</h2>
+<p>With the project open in OpenCode, run the propose slash command:</p>
+<pre><code>/opsx-propose implement-delete</code></pre>
+<p>This creates <code>openspec/changes/implement-delete/</code>
+containing <code>proposal.md</code>, <code>design.md</code>,
+<code>tasks.md</code>, and a <code>specs/</code> subfolder with
+requirement specs. Read through what the model generated, then open the
+spec files under <code>openspec/changes/implement-delete/specs/</code>
+to review and edit them. The model will have written some scenarios, but
+they are likely vague or incomplete, so tighten them into concrete
+Given/When/Then scenarios that pin down the edge cases from the
+introduction. For reference, here is what a precise scenario looks like
+(this one describes the existing <code>complete</code> command, not
+delete):</p>
+<pre><code>Given tasks.json contains task with id 2 and status &quot;pending&quot;
+When I run `python cli.py complete 2`
+Then task 2 in tasks.json has status &quot;complete&quot;
+And stdout contains &quot;Completed task 2.&quot;</code></pre>
+<p>Write scenarios for delete that are equally specific. Think about
+what happens on a nonexistent ID, what fields the archive entry should
+have, what the output messages look like, and whether task IDs can be
+reused. The more precise the scenarios are, the less room the model has
+to improvise.</p>
+<p>Once the spec is complete, apply it inside OpenCode:</p>
+<pre><code>/opsx-apply implement-delete</code></pre>
+<p>After the model generates the implementation, check it against each
+scenario and note whether it follows the spec faithfully or still
+invents behaviour where the spec left room.</p>
+<h2 id="delta-spec">Delta Spec</h2>
+<p>A delta spec describes only what changes relative to an existing
+spec, using <code>## ADDED</code> and <code>## MODIFIED</code> sections
+rather than rewriting everything from scratch. This second change
+extends the task manager with a <code>--priority</code> flag on the
+<code>add</code> command that accepts <code>low</code>,
+<code>medium</code>, or <code>high</code> (default <code>medium</code>),
+and the <code>list</code> command should then show high-priority tasks
+first.</p>
+<p>Propose it inside OpenCode:</p>
+<pre><code>/opsx-propose add-priority</code></pre>
+<p>Then edit the specs in
+<code>openspec/changes/add-priority/specs/</code>. This time, structure
+the spec as a delta: figure out which parts of the change are entirely
+new (<code>## ADDED</code>) and which parts modify existing behaviour
+(<code>## MODIFIED</code>), and write scenarios for each. Think about
+what happens to tasks that were created before the priority feature
+existed.</p>
+<p>Once the spec is ready, apply it:</p>
+<pre><code>/opsx-apply add-priority</code></pre>
+</div>
+</body>
+</html>
