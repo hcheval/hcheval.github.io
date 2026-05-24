@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lab 13</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.6.1/github-markdown.min.css" />
+  <style>
+    .markdown-body { box-sizing: border-box; min-width: 200px; max-width: 860px; margin: 40px auto; padding: 0 20px; }
+  </style>
+</head>
+<body>
+<div class="markdown-body">
+<p>import argparse from mcp.server.fastmcp import FastMCP</p>
+<p>parser = argparse.ArgumentParser() parser.add_argument(“–transport”,
+choices=[“stdio”, “sse”], default=“stdio”) parser.add_argument(“–port”,
+type=int, default=8080) args = parser.parse_args()</p>
+<p>mcp = FastMCP(“weather”, host=“127.0.0.1”, port=args.port)</p>
+<p><span class="citation" data-cites="mcp.tool">@mcp.tool</span>() def
+get_weather(city: str) -&gt; str: “““Return the current weather for a
+city.”“” data = { “london”: “12C, overcast”, “tokyo”: “24C, sunny”, “new
+york”: “18C, partly cloudy”, “paris”: “15C, light rain”, } result =
+data.get(city.lower()) return f”Weather in {city}: {result}” if result
+else f”No data for {city}.”</p>
+<p><span class="citation"
+data-cites="mcp.resource">@mcp.resource</span>(“weather://info”) def
+project_summary() -&gt; str: “““List of cities for which we have weather
+data”“” return “London, Tokyo, New York, Paris”</p>
+<p><span class="citation" data-cites="mcp.tool">@mcp.tool</span>() def
+list_cities() -&gt; list[str]: “““List all cities with available weather
+data.”“” return [“London”, “Tokyo”, “New York”, “Paris”]</p>
+<p>if <strong>name</strong> == “<strong>main</strong>”:
+mcp.run(transport=args.transport)</p>
+</div>
+</body>
+</html>
