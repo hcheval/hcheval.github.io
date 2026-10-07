@@ -3,279 +3,162 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Laboratorul 1</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.6.1/github-markdown.min.css" />
-  <style>
-    .markdown-body { box-sizing: border-box; min-width: 200px; max-width: 860px; margin: 40px auto; padding: 0 20px; }
-  </style>
+  <title>ITBI 2026 — Laboratorul 1</title>
+  <link rel="stylesheet" href="../../style.css" />
 </head>
 <body>
-<div class="markdown-body">
-<h1 id="laboratorul-1-linia-de-comandă-sistemul-de-fișiere">Laboratorul
-1: Linia de comandă, Sistemul de fișiere</h1>
-<h2 id="ierarhie">Ierarhie</h2>
-<p>În sistemele de operare de tip UNIX fișierele și directoarele sunt
-organizate într-o structură arborescentă. Rădăcina este notată cu
-<code>/</code> și se mai numește și <em>root</em>. În rădăcină se găsesc
-mai multe directoare și fișiere. La rândul lor, aceste directoare pot
-conține alte fișiere și directoare. Directoarele dintr-un director se
-mai numesc și <em>subdirectoare</em>, subliniind relația ierarhică.</p>
-<p>De exemplu, lista conturilor de utilizator se găsește în fișierul
-<code>/etc/passwd</code>. Acesta se află în directorul <code>etc</code>,
-care se află în rădăcină. Un exemplu cu mai multe niveluri este
-<code>/usr/bin/ls</code>, executabilul comenzii <code>ls</code>:
-fișierul <code>ls</code> se află în directorul <code>bin</code>, care se
-află la rândul său în directorul <code>usr</code>, care se află în
-rădăcină.</p>
-<p>Un șir precum <code>/usr/bin/ls</code> se numește <em>calea</em>
-fișierului: numele directoarelor parcurse pornind de la rădăcină,
-separate prin <code>/</code>. O cale care începe cu <code>/</code> este
-o <strong>cale absolută</strong> și desemnează același fișier indiferent
-unde vă aflați în sistem. O cale care nu începe cu <code>/</code> este o
-<strong>cale relativă</strong> și este interpretată pornind de la
-<em>directorul curent</em>, adică directorul în care lucrați la un
-moment dat (vezi secțiunea Navigare). De exemplu, dacă directorul curent
-este <code>/usr</code>, calea relativă <code>bin/ls</code> desemnează
-același fișier ca și calea absolută <code>/usr/bin/ls</code>. Dacă însă
-directorul curent este <code>/etc</code>, aceeași cale relativă
-<code>bin/ls</code> desemnează <code>/etc/bin/ls</code>, care nu
-există.</p>
-<p>Două nume speciale există în orice director: <code>.</code>
-reprezintă directorul însuși, iar <code>..</code> directorul părinte.
-Astfel, dacă directorul curent este <code>/usr/bin</code>, calea
-<code>./ls</code> desemnează <code>/usr/bin/ls</code>, iar calea
-<code>../lib</code> desemnează <code>/usr/lib</code>.</p>
-<h2 id="linia-de-comandă">Linia de comandă</h2>
-<p>Majoritatea comenzilor vor fi executate în cadrul unui terminal
-(ex. xterm(1), GNOME Terminal etc.). Deși dificil și aparent mai
-complicat la început, folosirea terminalului oferă multe avantaje precum
-flexibilitate, automatizarea sarcinilor și control la distanță al altor
-mașini.</p>
-<p>Un terminal tipic are la bază un program de tip shell (ex. bash(1),
-ksh, zsh) care gestionează și execută comenzi secvențial sau în paralel.
-Promptul unui terminal indică faptul că se așteaptă o comandă de la
-utilizator și este în cea mai simplă formă constituit din simbolul
-<code>$</code> sau <code>%</code> pentru utilizatorii comuni și
-<code>#</code> pentru administrator (denumit <em>root</em> în UNIX).</p>
-<p>Tot ce este scris în dreapta promptului reprezintă comanda
-utilizatorului către mașină.</p>
-<pre><code>$ echo &quot;Hello, World!&quot;
+
+<nav>
+  <a class="brand" href="../../index.html">Horațiu Cheval</a>
+  <a href="../index.html">Teaching</a>
+  <a href="index.html">ITBI 2026</a>
+  <a href="lab1.html">Laborator 1</a>
+</nav>
+
+<main>
+
+  <section>
+    <h1>Laboratorul 1: Linia de comandă, Sistemul de fișiere</h1>
+  </section>
+
+  <section id="ierarhie">
+    <h2>Ierarhie</h2>
+    <p>În sistemele de operare de tip UNIX fișierele și directoarele sunt organizate într-o structură arborescentă. Rădăcina este notată cu <code>/</code> și se mai numește și <em>root</em>. În rădăcină se găsesc mai multe directoare și fișiere. La rândul lor, aceste directoare pot conține alte fișiere și directoare. Directoarele dintr-un director se mai numesc și <em>subdirectoare</em>, subliniind relația ierarhică.</p>
+    <p>De exemplu, lista conturilor de utilizator se găsește în fișierul <code>/etc/passwd</code>. Acesta se află în directorul <code>etc</code>, care se află în rădăcină. Un exemplu cu mai multe niveluri este <code>/usr/bin/ls</code>, executabilul comenzii <code>ls</code>: fișierul <code>ls</code> se află în directorul <code>bin</code>, care se află la rândul său în directorul <code>usr</code>, care se află în rădăcină.</p>
+    <p>Un șir precum <code>/usr/bin/ls</code> se numește <em>calea</em> fișierului: numele directoarelor parcurse pornind de la rădăcină, separate prin <code>/</code>. O cale care începe cu <code>/</code> este o <strong>cale absolută</strong> și desemnează același fișier indiferent unde vă aflați în sistem. O cale care nu începe cu <code>/</code> este o <strong>cale relativă</strong> și este interpretată pornind de la <em>directorul curent</em>, adică directorul în care lucrați la un moment dat (vezi secțiunea Navigare). De exemplu, dacă directorul curent este <code>/usr</code>, calea relativă <code>bin/ls</code> desemnează același fișier ca și calea absolută <code>/usr/bin/ls</code>. Dacă însă directorul curent este <code>/etc</code>, aceeași cale relativă <code>bin/ls</code> desemnează <code>/etc/bin/ls</code>, care nu există.</p>
+    <p>Două nume speciale există în orice director: <code>.</code> reprezintă directorul însuși, iar <code>..</code> directorul părinte. Astfel, dacă directorul curent este <code>/usr/bin</code>, calea <code>./ls</code> desemnează <code>/usr/bin/ls</code>, iar calea <code>../lib</code> desemnează <code>/usr/lib</code>.</p>
+  </section>
+
+  <section id="linia-de-comanda">
+    <h2>Linia de comandă</h2>
+    <p>Majoritatea comenzilor vor fi executate în cadrul unui terminal (ex. xterm(1), GNOME Terminal etc.). Deși dificil și aparent mai complicat la început, folosirea terminalului oferă multe avantaje precum flexibilitate, automatizarea sarcinilor și control la distanță al altor mașini.</p>
+    <p>Un terminal tipic are la bază un program de tip shell (ex. bash(1), ksh, zsh) care gestionează și execută comenzi secvențial sau în paralel. Promptul unui terminal indică faptul că se așteaptă o comandă de la utilizator și este în cea mai simplă formă constituit din simbolul <code>$</code> sau <code>%</code> pentru utilizatorii comuni și <code>#</code> pentru administrator (denumit <em>root</em> în UNIX).</p>
+    <p>Tot ce este scris în dreapta promptului reprezintă comanda utilizatorului către mașină.</p>
+    <pre><code>$ echo "Hello, World!"
 Hello, World!
 $</code></pre>
-<p>În exemplul de mai sus a fost executată comanda <code>echo</code> cu
-parametrul <code>"Hello, World!"</code>. Rezultatul comenzii, dacă
-există, este afișat fără a fi prefixat cu prompt. Încheierea comenzii
-este semnalată prin reaparitia promptului.</p>
-<p>De fiecare dată când vedeți o comandă necunoscută citiți manualul
-pentru a afla ce face:</p>
-<pre><code>$ man echo</code></pre>
-<p>Din motive istorice, manualul sistemului de operare (ce include
-manualele comenzilor) este împărțit în secțiuni. Astfel pot exista mai
-multe intrări cu același nume dar în secțiuni diferite. Vezi cunoscuta
-funcție <code>printf</code>.</p>
-<pre><code>$ man printf
+    <p>În exemplul de mai sus a fost executată comanda <code>echo</code> cu parametrul <code>"Hello, World!"</code>. Rezultatul comenzii, dacă există, este afișat fără a fi prefixat cu prompt. Încheierea comenzii este semnalată prin reaparitia promptului.</p>
+    <p>De fiecare dată când vedeți o comandă necunoscută citiți manualul pentru a afla ce face:</p>
+    <pre><code>$ man echo</code></pre>
+    <p>Din motive istorice, manualul sistemului de operare (ce include manualele comenzilor) este împărțit în secțiuni. Astfel pot exista mai multe intrări cu același nume dar în secțiuni diferite. Vezi cunoscuta funcție <code>printf</code>.</p>
+    <pre><code>$ man printf
 $ man 3 printf</code></pre>
-<p>Prima instrucțiune s-ar putea să vă surprindă afișând manualul
-comenzii <code>printf</code> nu a funcției C <code>printf</code>.
-Comenzile de terminal se află de regulă în secțiunea 1, pe când
-funcțiile se află în secțiunea 3. Pentru a accesa manualul funcției
-trebuie să specificăm un argument în plus comenzii <code>man</code>(1)
-care specifică secțiunea explicit. Din această cauză când ne referim la
-o comandă sau o funcție punem la sfârșit și secțiunea din manual în care
-este documentată: <code>printf</code>(1) versus <code>printf</code>(3).
-Este bine de știut că există manual și pentru comanda de citit
-manuale:</p>
-<pre><code>$ man man</code></pre>
-<h2 id="lucrul-eficient-în-linia-de-comandă">Lucrul eficient în linia de
-comandă</h2>
-<p>Câteva combinații de taste vă scutesc de mult timp și de multe
-greșeli în terminal:</p>
-<table>
-<thead>
-<tr>
-<th>Tastă</th>
-<th>Efect</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>Tab</code></td>
-<td>completează numele comenzii sau al fișierului început</td>
-</tr>
-<tr>
-<td><code>↑</code> / <code>↓</code></td>
-<td>parcurge comenzile introduse anterior</td>
-</tr>
-<tr>
-<td><code>Ctrl+C</code></td>
-<td>întrerupe comanda aflată în execuție</td>
-</tr>
-</tbody>
-</table>
-<p>Pentru a exersa <code>Ctrl+C</code>, rulați:</p>
-<pre><code>$ sleep 100</code></pre>
-<p>Comanda <code>sleep</code>(1) așteaptă 100 de secunde fără să afișeze
-nimic, iar promptul nu reapare până la încheierea ei. Apăsați
-<code>Ctrl+C</code> pentru a o opri și a reveni la prompt. Același lucru
-îl puteți face cu orice comandă care durează prea mult sau pare
-blocată.</p>
-<p><strong>Copiere și lipire.</strong> Deoarece <code>Ctrl+C</code>
-întrerupe comenzi, în majoritatea terminalelor copierea și lipirea se
-fac cu <code>Ctrl+Shift+C</code> și <code>Ctrl+Shift+V</code>, sau din
-meniul deschis cu click dreapta. Atenție când copiați comenzi din acest
-document: simbolul <code>$</code> de la începutul liniei este promptul
-și nu face parte din comandă, iar liniile fără <code>$</code> sunt
-rezultatul afișat de comandă. Copiați doar comanda propriu-zisă.</p>
-<h2 id="navigare">Navigare</h2>
-<p>În general, fiecare utilizator are un spațiu de lucru propriu în care
-își poate desfășura activitatea. Acest spațiu este găzduit într-un
-director, de regulă <code>/home/username</code>, care este memorat în
-variabila <code>$HOME</code>.</p>
-<pre><code>$ echo $HOME
+    <p>Prima instrucțiune s-ar putea să vă surprindă afișând manualul comenzii <code>printf</code> nu a funcției C <code>printf</code>. Comenzile de terminal se află de regulă în secțiunea 1, pe când funcțiile se află în secțiunea 3. Pentru a accesa manualul funcției trebuie să specificăm un argument în plus comenzii <code>man</code>(1) care specifică secțiunea explicit. Din această cauză când ne referim la o comandă sau o funcție punem la sfârșit și secțiunea din manual în care este documentată: <code>printf</code>(1) versus <code>printf</code>(3). Este bine de știut că există manual și pentru comanda de citit manuale:</p>
+    <pre><code>$ man man</code></pre>
+  </section>
+
+  <section id="lucrul-eficient">
+    <h2>Lucrul eficient în linia de comandă</h2>
+    <p>Câteva combinații de taste vă scutesc de mult timp și de multe greșeli în terminal:</p>
+    <table>
+      <thead>
+        <tr><th>Tastă</th><th>Efect</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>Tab</code></td><td>completează numele comenzii sau al fișierului început</td></tr>
+        <tr><td><code>↑</code> / <code>↓</code></td><td>parcurge comenzile introduse anterior</td></tr>
+        <tr><td><code>Ctrl+C</code></td><td>întrerupe comanda aflată în execuție</td></tr>
+      </tbody>
+    </table>
+    <p>Pentru a exersa <code>Ctrl+C</code>, rulați:</p>
+    <pre><code>$ sleep 100</code></pre>
+    <p>Comanda <code>sleep</code>(1) așteaptă 100 de secunde fără să afișeze nimic, iar promptul nu reapare până la încheierea ei. Apăsați <code>Ctrl+C</code> pentru a o opri și a reveni la prompt. Același lucru îl puteți face cu orice comandă care durează prea mult sau pare blocată.</p>
+    <p><strong>Copiere și lipire.</strong> Deoarece <code>Ctrl+C</code> întrerupe comenzi, în majoritatea terminalelor copierea și lipirea se fac cu <code>Ctrl+Shift+C</code> și <code>Ctrl+Shift+V</code>, sau din meniul deschis cu click dreapta. Atenție când copiați comenzi din acest document: simbolul <code>$</code> de la începutul liniei este promptul și nu face parte din comandă, iar liniile fără <code>$</code> sunt rezultatul afișat de comandă. Copiați doar comanda propriu-zisă.</p>
+  </section>
+
+  <section id="navigare">
+    <h2>Navigare</h2>
+    <p>În general, fiecare utilizator are un spațiu de lucru propriu în care își poate desfășura activitatea. Acest spațiu este găzduit într-un director, de regulă <code>/home/username</code>, care este memorat în variabila <code>$HOME</code>.</p>
+    <pre><code>$ echo $HOME
 /home/horatiu</code></pre>
-<p>Acest tip de variabilă se mai numește și variabilă de mediu. Ele sunt
-definite dinamic de sistem sau utilizator pentru a fi folosite de
-programe la execuție. Variabilele sunt în general scrise cu litere mari
-și precedate de simbolul <code>$</code>.</p>
-<p>Shell-ul oferă și o prescurtare pentru directorul <code>$HOME</code>:
-caracterul <code>~</code> (tilda). Astfel, <code>~/Documents</code> este
-echivalent cu <code>$HOME/Documents</code>, adică
-<code>/home/horatiu/Documents</code> în exemplul de mai sus.</p>
-<p>Când este pornit un terminal, acesta de regulă vă plasează în
-directorul <code>$HOME</code>. Folosiți comanda <code>pwd</code>(1)
-pentru a verifica în orice moment unde vă aflați și comanda
-<code>ls</code>(1) pentru a lista conținutul directorului curent.</p>
-<pre><code>$ pwd
+    <p>Acest tip de variabilă se mai numește și variabilă de mediu. Ele sunt definite dinamic de sistem sau utilizator pentru a fi folosite de programe la execuție. Variabilele sunt în general scrise cu litere mari și precedate de simbolul <code>$</code>.</p>
+    <p>Shell-ul oferă și o prescurtare pentru directorul <code>$HOME</code>: caracterul <code>~</code> (tilda). Astfel, <code>~/Documents</code> este echivalent cu <code>$HOME/Documents</code>, adică <code>/home/horatiu/Documents</code> în exemplul de mai sus.</p>
+    <p>Când este pornit un terminal, acesta de regulă vă plasează în directorul <code>$HOME</code>. Folosiți comanda <code>pwd</code>(1) pentru a verifica în orice moment unde vă aflați și comanda <code>ls</code>(1) pentru a lista conținutul directorului curent.</p>
+    <pre><code>$ pwd
 /home/horatiu/Documents/itbi/lab1
 $ ls
 itbi-lab-1.aux  itbi-lab-1.fdb_latexmk  itbi-lab-1.fls
 itbi-lab-1.log  itbi-lab-1.pdf          itbi-lab-1.tex</code></pre>
-<p>Toate comenzile se execută relativ la directorul curent:
-<code>ls</code>(1) verifică implicit directorul curent și listează
-conținutul său.</p>
-<p>Comportamentul unei comenzi poate fi modificat prin <em>opțiuni</em>,
-care de regulă încep cu <code>-</code>. De exemplu, opțiunea
-<code>-l</code> a comenzii <code>ls</code>(1) afișează detalii despre
-fiecare fișier:</p>
-<pre><code>$ ls -l /etc/passwd
+    <p>Toate comenzile se execută relativ la directorul curent: <code>ls</code>(1) verifică implicit directorul curent și listează conținutul său.</p>
+    <p>Comportamentul unei comenzi poate fi modificat prin <em>opțiuni</em>, care de regulă încep cu <code>-</code>. De exemplu, opțiunea <code>-l</code> a comenzii <code>ls</code>(1) afișează detalii despre fiecare fișier:</p>
+    <pre><code>$ ls -l /etc/passwd
 -rw-r--r-- 1 root root 2847 Sep 12 10:31 /etc/passwd</code></pre>
-<p>Coloanele reprezintă, în ordine: tipul fișierului și permisiunile
-(discutate într-un laborator viitor), numărul de legături, proprietarul,
-grupul, dimensiunea în octeți, data ultimei modificări și numele. Primul
-caracter indică tipul: <code>-</code> pentru un fișier obișnuit și
-<code>d</code> pentru un director.</p>
-<p>Fișierele și directoarele al căror nume începe cu <code>.</code> sunt
-<em>ascunse</em>: <code>ls</code>(1) nu le afișează implicit. De regulă
-acestea sunt fișiere de configurare, precum <code>~/.bashrc</code>, pe
-care shell-ul bash îl citește la pornire. Pentru a le afișa folosiți
-opțiunea <code>-a</code>:</p>
-<pre><code>$ ls -a ~
+    <p>Coloanele reprezintă, în ordine: tipul fișierului și permisiunile (discutate într-un laborator viitor), numărul de legături, proprietarul, grupul, dimensiunea în octeți, data ultimei modificări și numele. Primul caracter indică tipul: <code>-</code> pentru un fișier obișnuit și <code>d</code> pentru un director.</p>
+    <p>Fișierele și directoarele al căror nume începe cu <code>.</code> sunt <em>ascunse</em>: <code>ls</code>(1) nu le afișează implicit. De regulă acestea sunt fișiere de configurare, precum <code>~/.bashrc</code>, pe care shell-ul bash îl citește la pornire. Pentru a le afișa folosiți opțiunea <code>-a</code>:</p>
+    <pre><code>$ ls -a ~
 .  ..  .bash_history  .bashrc  .profile  Documents</code></pre>
-<p>Rezultatul diferă de la un sistem la altul. Observați că în listă
-apar și intrările speciale <code>.</code> și <code>..</code>, descrise
-în secțiunea Ierarhie. Opțiunile pot fi și combinate:
-<code>ls -la</code> afișează detaliat toate fișierele, inclusiv pe cele
-ascunse.</p>
-<p>Dacă doriți să schimbați directorul curent folosiți comanda
-<code>cd</code>(1). Aceasta primește ca parametru viitorul director
-curent. El poate fi dat relativ la directorul curent sau în formă
-absolută pornind de la rădăcină. Reamintim că <code>..</code> desemnează
-directorul părinte. Deci dacă vrem din exemplul anterior să ajungem
-acasă putem folosi oricare dintre următoarele comenzi:</p>
-<pre><code>$ cd ../../../
+    <p>Rezultatul diferă de la un sistem la altul. Observați că în listă apar și intrările speciale <code>.</code> și <code>..</code>, descrise în secțiunea Ierarhie. Opțiunile pot fi și combinate: <code>ls -la</code> afișează detaliat toate fișierele, inclusiv pe cele ascunse.</p>
+    <p>Dacă doriți să schimbați directorul curent folosiți comanda <code>cd</code>(1). Aceasta primește ca parametru viitorul director curent. El poate fi dat relativ la directorul curent sau în formă absolută pornind de la rădăcină. Reamintim că <code>..</code> desemnează directorul părinte. Deci dacă vrem din exemplul anterior să ajungem acasă putem folosi oricare dintre următoarele comenzi:</p>
+    <pre><code>$ cd ../../../
 $ cd /home/horatiu
 $ cd $HOME
 $ cd ~
 $ cd</code></pre>
-<p>Implicit <code>cd</code>(1) fără argumente schimbă directorul în
-directorul <code>$HOME</code>.</p>
-<p>Pentru a afla unde se află executabilul aferent unei comenzi folosiți
-comanda <code>which</code>(1):</p>
-<pre><code>$ which ls
+    <p>Implicit <code>cd</code>(1) fără argumente schimbă directorul în directorul <code>$HOME</code>.</p>
+    <p>Pentru a afla unde se află executabilul aferent unei comenzi folosiți comanda <code>which</code>(1):</p>
+    <pre><code>$ which ls
 /usr/bin/ls</code></pre>
-<p>O altă variabilă importantă este cea în care sunt memorate căile din
-sistemul de fișiere în care se găsesc executabilele.</p>
-<pre><code>$ echo $PATH
+    <p>O altă variabilă importantă este cea în care sunt memorate căile din sistemul de fișiere în care se găsesc executabilele.</p>
+    <pre><code>$ echo $PATH
 /bin:/sbin:/usr/bin:/usr/sbin:/usr/X11R6/bin:/usr/local/bin:/usr/local/sbin</code></pre>
-<p>În general, comanda pentru a rula un executabil este dată de calea
-(fie absolută, fie relativă la directorul curent) către acesta.</p>
-<p>Calea absolută:</p>
-<pre><code>$ /path/to/executable</code></pre>
-<p>Calea relativă:</p>
-<pre><code>$ ./path/to/executable</code></pre>
-<p>Observați că <code>ls</code>(1) se află într-unul din directoarele
-conținute în <code>$PATH</code>, motiv pentru care nu este nevoie să
-specificăm întreaga cale. Pentru a adăuga directoarele la
-<code>$PATH</code> se poate folosi comanda</p>
-<pre><code>$ export PATH=$PATH:/path/to/directory</code></pre>
-<p>pentru adăugare la final, sau</p>
-<pre><code>$ export PATH=/path/to/directory:$PATH</code></pre>
-<p>pentru adăugare la început.</p>
-<p>Spre exemplu, după</p>
-<pre><code>$ export PATH=$PATH:/home/horatiu/itbi/bin</code></pre>
-<p>toate executabilele din <code>/home/horatiu/itbi/bin</code> vor putea
-fi apelate drept comenzi cu numele lor.</p>
-<h2 id="editarea-textului-în-linia-de-comandă">Editarea textului în
-linia de comandă</h2>
-<p>Pentru editarea fișierelor din linia de comandă sunt disponibile
-diverse editoare fără interfață grafică, precum <code>nano(1)</code> sau
-<code>vi(1)</code>.</p>
-<pre><code>$ nano main.cpp</code></pre>
-<p>Un avantaj al acestora este că pot fi utilizate inclusiv pe sisteme
-care nu pun la dispoziție o interfață grafică. Desigur, multe
-distribuții vin cu editoare grafice instalate, precum <code>gedit</code>
-sau <code>kate</code>, care pot fi apelate într-o manieră similară.</p>
-<pre><code>$ gedit main.cpp</code></pre>
-<h2 id="citire-și-scriere">Citire și scriere</h2>
-<p>Pentru a crea fișiere noi text se poate folosi
-<code>echo</code>(1):</p>
-<pre><code>$ echo &quot;lorem ipsum&quot; &gt; foo</code></pre>
-<p>unde operatorul <code>&gt;</code> redirecționează ieșirea comenzii
-către fișierul <code>foo</code>. Dacă <code>foo</code> există, va fi
-suprascris. Pentru a adăuga la sfârșitul unui fișier existent folosiți
-<code>&gt;&gt;</code>. Fișierele text scurte pot fi rapid afișate în
-terminal cu ajutorul comenzii <code>cat</code>(1).</p>
-<pre><code>$ cat foo
+    <p>În general, comanda pentru a rula un executabil este dată de calea (fie absolută, fie relativă la directorul curent) către acesta.</p>
+    <p>Calea absolută:</p>
+    <pre><code>$ /path/to/executable</code></pre>
+    <p>Calea relativă:</p>
+    <pre><code>$ ./path/to/executable</code></pre>
+    <p>Observați că <code>ls</code>(1) se află într-unul din directoarele conținute în <code>$PATH</code>, motiv pentru care nu este nevoie să specificăm întreaga cale. Pentru a adăuga directoarele la <code>$PATH</code> se poate folosi comanda</p>
+    <pre><code>$ export PATH=$PATH:/path/to/directory</code></pre>
+    <p>pentru adăugare la final, sau</p>
+    <pre><code>$ export PATH=/path/to/directory:$PATH</code></pre>
+    <p>pentru adăugare la început.</p>
+    <p>Spre exemplu, după</p>
+    <pre><code>$ export PATH=$PATH:/home/horatiu/itbi/bin</code></pre>
+    <p>toate executabilele din <code>/home/horatiu/itbi/bin</code> vor putea fi apelate drept comenzi cu numele lor.</p>
+  </section>
+
+  <section id="editarea-textului">
+    <h2>Editarea textului în linia de comandă</h2>
+    <p>Pentru editarea fișierelor din linia de comandă sunt disponibile diverse editoare fără interfață grafică, precum <code>nano(1)</code> sau <code>vi(1)</code>.</p>
+    <pre><code>$ nano main.cpp</code></pre>
+    <p>Un avantaj al acestora este că pot fi utilizate inclusiv pe sisteme care nu pun la dispoziție o interfață grafică. Desigur, multe distribuții vin cu editoare grafice instalate, precum <code>gedit</code> sau <code>kate</code>, care pot fi apelate într-o manieră similară.</p>
+    <pre><code>$ gedit main.cpp</code></pre>
+  </section>
+
+  <section id="citire-si-scriere">
+    <h2>Citire și scriere</h2>
+    <p>Pentru a crea fișiere noi text se poate folosi <code>echo</code>(1):</p>
+    <pre><code>$ echo "lorem ipsum" &gt; foo</code></pre>
+    <p>unde operatorul <code>&gt;</code> redirecționează ieșirea comenzii către fișierul <code>foo</code>. Dacă <code>foo</code> există, va fi suprascris. Pentru a adăuga la sfârșitul unui fișier existent folosiți <code>&gt;&gt;</code>. Fișierele text scurte pot fi rapid afișate în terminal cu ajutorul comenzii <code>cat</code>(1).</p>
+    <pre><code>$ cat foo
 lorem ipsum</code></pre>
-<p>Deși se poate aplica aceeași comandă asupra fișierelor binare, precum
-executabilele, nu este recomandat deoarece anumite "caractere" rezultate
-pot fi interpretate de shell drept caractere de control care vor da
-peste cap funcționarea normală a terminalului.</p>
-<p>Atunci când ieșirea unei comenzi este prea lungă și depășește
-lungimea terminalului, pentru a parcurge toată informația se recomandă
-folosirea unui <em>pager</em> precum <code>less</code>(1):</p>
-<pre><code>$ ls -l /usr/bin | less</code></pre>
-<p>unde operatorul <code>|</code> se numește <em>pipe</em>. Un
-<em>pipe</em> transformă ieșirea programului din stânga în intrarea
-celui din dreapta. Pentru a ieși din <code>less</code>(1) apăsați tasta
-<code>q</code>. Pentru a căuta un text folosiți comanda <code>/</code>.
-De exemplu <code>/print</code> va căuta șirul de caractere
-<code>print</code>. Evident, <code>less</code>(1) poate fi folosit
-direct pentru a inspecta fișiere și este util mai ales pentru fișiere
-text mari:</p>
-<pre><code>$ less /etc/passwd</code></pre>
-<h2 id="manipulare">Manipulare</h2>
-<p>Directoarele sunt create cu comanda <code>mkdir</code>(1):</p>
-<pre><code>$ pwd
+    <p>Deși se poate aplica aceeași comandă asupra fișierelor binare, precum executabilele, nu este recomandat deoarece anumite "caractere" rezultate pot fi interpretate de shell drept caractere de control care vor da peste cap funcționarea normală a terminalului.</p>
+    <p>Atunci când ieșirea unei comenzi este prea lungă și depășește lungimea terminalului, pentru a parcurge toată informația se recomandă folosirea unui <em>pager</em> precum <code>less</code>(1):</p>
+    <pre><code>$ ls -l /usr/bin | less</code></pre>
+    <p>unde operatorul <code>|</code> se numește <em>pipe</em>. Un <em>pipe</em> transformă ieșirea programului din stânga în intrarea celui din dreapta. Pentru a ieși din <code>less</code>(1) apăsați tasta <code>q</code>. Pentru a căuta un text folosiți comanda <code>/</code>. De exemplu <code>/print</code> va căuta șirul de caractere <code>print</code>. Evident, <code>less</code>(1) poate fi folosit direct pentru a inspecta fișiere și este util mai ales pentru fișiere text mari:</p>
+    <pre><code>$ less /etc/passwd</code></pre>
+  </section>
+
+  <section id="manipulare">
+    <h2>Manipulare</h2>
+    <p>Directoarele sunt create cu comanda <code>mkdir</code>(1):</p>
+    <pre><code>$ pwd
 /home/horatiu/Documents/itbi
 $ mkdir tmp
 $ cd tmp</code></pre>
-<p>Pentru a crea fișiere noi lipsite de conținut folosiți comanda
-<code>touch</code>(1).</p>
-<pre><code>$ touch foo
+    <p>Pentru a crea fișiere noi lipsite de conținut folosiți comanda <code>touch</code>(1).</p>
+    <pre><code>$ touch foo
 $ ls
 foo</code></pre>
-<p>Operarea de copiere se face cu comanda <code>cp</code>(1):</p>
-<pre><code>$ cp foo bar
+    <p>Operarea de copiere se face cu comanda <code>cp</code>(1):</p>
+    <pre><code>$ cp foo bar
 $ ls
 bar  foo</code></pre>
-<p>iar cea de mutare cu comanda <code>mv</code>(1):</p>
-<pre><code>$ mv bar baz
+    <p>iar cea de mutare cu comanda <code>mv</code>(1):</p>
+    <pre><code>$ mv bar baz
 $ ls
 baz  foo</code></pre>
-<p>Fișierele se șterg cu comanda <code>rm</code>(1), iar directoarele
-goale cu comanda <code>rmdir</code>(1):</p>
-<pre><code>$ pwd
+    <p>Fișierele se șterg cu comanda <code>rm</code>(1), iar directoarele goale cu comanda <code>rmdir</code>(1):</p>
+    <pre><code>$ pwd
 /home/horatiu/wrk/ub/itbi/lab/1/tmp
 $ ls
 baz  foo
@@ -283,12 +166,17 @@ $ rm baz foo
 $ ls
 $ cd ..
 $ rmdir tmp</code></pre>
-<h2 id="sarcini-de-laborator">Sarcini de laborator</h2>
-<ol type="1">
-<li><p>Rulați toate comenzile descrise în laborator</p></li>
-<li><p>Refaceți următoarea ierarhie de directoare și fișiere folosind
-comenzile <code>mkdir</code>(1) și <code>touch</code>(1):</p>
-<pre><code>itbi
+  </section>
+
+  <section id="sarcini">
+    <h2>Sarcini de laborator</h2>
+    <ol>
+      <li>
+        <p>Rulați toate comenzile descrise în laborator</p>
+      </li>
+      <li>
+        <p>Refaceți următoarea ierarhie de directoare și fișiere folosind comenzile <code>mkdir</code>(1) și <code>touch</code>(1):</p>
+        <pre><code>itbi
 |-- curs
 |   `-- 1
 |       |-- itbi-curs-1.pdf
@@ -296,18 +184,19 @@ comenzile <code>mkdir</code>(1) și <code>touch</code>(1):</p>
 `-- lab
     `-- 1
         |-- itbi-lab-1.pdf
-        `-- itbi-lab-1.tex</code></pre></li>
-<li><p>Creați un director și câteva fișiere în acesta. Încercați să
-ștergeți directorul creat folosind <code>rm</code> sau
-<code>rmdir</code>. Ce observați? Căutați în manualul <code>rm</code>(1)
-cum să ștergeți recursiv și folosiți informația pentru a șterge într-o
-singură instrucțiune directorul creat devreme.</p></li>
-<li><p>Creați un director <code>bin</code> în <code>$HOME</code> și
-adăugați-l în <code>$PATH</code>. Copiați un executabil existent (de
-exemplu <code>gcc</code>) și observați cum/dacă se modifică ieșirea
-comenzii <code>which</code>(1) când întrebați de executabilul copiat.
-Dacă nu se schimbă, de ce?</p></li>
-</ol>
-</div>
+        `-- itbi-lab-1.tex</code></pre>
+      </li>
+      <li>
+        <p>Creați un director și câteva fișiere în acesta. Încercați să ștergeți directorul creat folosind <code>rm</code> sau <code>rmdir</code>. Ce observați? Căutați în manualul <code>rm</code>(1) cum să ștergeți recursiv și folosiți informația pentru a șterge într-o singură instrucțiune directorul creat devreme.</p>
+      </li>
+      <li>
+        <p>Creați un director <code>bin</code> în <code>$HOME</code> și adăugați-l în <code>$PATH</code>. Copiați un executabil existent (de exemplu <code>gcc</code>) și observați cum/dacă se modifică ieșirea comenzii <code>which</code>(1) când întrebați de executabilul copiat. Dacă nu se schimbă, de ce?</p>
+      </li>
+    </ol>
+  </section>
+
+</main>
+
+
 </body>
 </html>
