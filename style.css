@@ -110,11 +110,6 @@ h2 {
   margin: 0 0 1.25rem;
 }
 
-h2::before {
-  content: "§ ";
-  color: var(--accent-soft);
-}
-
 h3 {
   font-size: 1.2rem;
   margin: 1.75rem 0 0.5rem;
